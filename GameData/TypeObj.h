@@ -1,0 +1,2 @@
+#define TYPE_MONSTER 0x2E
+#define TYPE_PLAYER 0x31

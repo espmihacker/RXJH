@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MFC_DLL", "MFC_DLL\MFC_DLL.vcxproj", "{193579CA-3EE7-47D7-8715-EB955580883D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InjectDll", "InjectDll\InjectDll.vcxproj", "{9DD57E66-6F44-452B-AAB4-99C6D71192AC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameData", "GameData\GameData.vcxproj", "{B5689D7F-E1F3-454B-919C-E443AF568F4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{193579CA-3EE7-47D7-8715-EB955580883D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{193579CA-3EE7-47D7-8715-EB955580883D}.Debug|Win32.Build.0 = Debug|Win32
+		{193579CA-3EE7-47D7-8715-EB955580883D}.Release|Win32.ActiveCfg = Release|Win32
+		{193579CA-3EE7-47D7-8715-EB955580883D}.Release|Win32.Build.0 = Release|Win32
+		{9DD57E66-6F44-452B-AAB4-99C6D71192AC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9DD57E66-6F44-452B-AAB4-99C6D71192AC}.Debug|Win32.Build.0 = Debug|Win32
+		{9DD57E66-6F44-452B-AAB4-99C6D71192AC}.Release|Win32.ActiveCfg = Release|Win32
+		{9DD57E66-6F44-452B-AAB4-99C6D71192AC}.Release|Win32.Build.0 = Release|Win32
+		{B5689D7F-E1F3-454B-919C-E443AF568F4D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B5689D7F-E1F3-454B-919C-E443AF568F4D}.Debug|Win32.Build.0 = Debug|Win32
+		{B5689D7F-E1F3-454B-919C-E443AF568F4D}.Release|Win32.ActiveCfg = Release|Win32
+		{B5689D7F-E1F3-454B-919C-E443AF568F4D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
