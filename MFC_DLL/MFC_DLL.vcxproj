@@ -98,7 +98,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="MFC_DLL.def" />
     <None Include="ReadMe.txt" />
     <None Include="res\MFC_DLL.rc2" />
   </ItemGroup>
