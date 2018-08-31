@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="MainDialogWnd.cpp" />
+    <ClCompile Include="MFC_DLL.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainDialogWnd.h" />
+    <ClInclude Include="MFC_DLL.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MFC_DLL.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MFC_DLL.def" />
+    <None Include="ReadMe.txt" />
+    <None Include="res\MFC_DLL.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{d663061e-3bdf-4cba-9111-05041ba99575}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
