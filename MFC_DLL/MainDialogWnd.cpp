@@ -119,7 +119,14 @@ void CMainDialogWnd::OnBnClickedButton4()
 
 void CMainDialogWnd::OnBnClickedButton5()
 {
-	msgTest(NULL);
+
+	//msgTest(NULL);
 	//Sleep(200);
 	//msgTest(NULL);
+
+	//"魔龙斩"
+	//msgUseSkillByName("魔龙斩");
+
+	//使用技能自动打怪
+	msgAutoAttackMonsterBySkill("魔龙斩");
 }

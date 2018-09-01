@@ -425,7 +425,7 @@ BOOL TROLE_OBJ::selectMonsterByNear(){
 		//	ndIndex = g_tMonsterListObj.getData()->tMonsterList[i].ndIndexByAllObj;
 		//}
 		TMONSTER_OBJ obj = g_tMonsterListObj.getData()->tMonsterList[i];
-		if(obj.ndIndexByAllObj != 0 && obj.ndDistance < ndDistance){
+		if(obj.ndIndexByAllObj != 0 && obj.ndDistance < ndDistance && obj.ndLevel == 8){
 			ndDistance = obj.ndDistance;
 			ndIndex = obj.ndIndexByAllObj;//最近距离的怪物ID
 			
@@ -460,13 +460,33 @@ DWORD TROLE_OBJ::getSelectObjType(){
 }
 
 //自动打怪
-BOOL TROLE_OBJ::AutoAttackMonster(){
+BOOL TROLE_OBJ::autoAttackMonster(){
 	//选怪
 	if(getSelectObjType() != TYPE_MONSTER){
 		selectMonsterByNear();
 	}
 	//攻击
 	g_tActionListObj.getData()->UseAction("攻击");
+
+	return TRUE;
+}
+
+BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName){
+	//选怪
+	if(getSelectObjType() != TYPE_MONSTER){
+		selectMonsterByNear();
+	}
+/*
+	//放置技能
+	BOOL isDroped = g_tSkillList.getData()->dropSkillF1F10(szpSkillName);
+	//使用技能攻击
+	if(isDroped){
+		g_tF1_F10List.getData()->useSkillByName(szpSkillName);//技能攻击
+	}else{
+		g_tActionListObj.getData()->UseAction("攻击");;//普通攻击
+	}
+*/
+	g_tF1_F10List.getData()->useSkillByName(szpSkillName);//技能攻击
 
 	return TRUE;
 }
@@ -538,7 +558,6 @@ BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10){
 		if(ndObjBase == NULL){
 			return FALSE;
 		}
-		DbgPrintfMine("-------------------");
 		__asm{
 			mov edi,Base_DropSkillArg
 			mov edi,[edi]
@@ -559,6 +578,23 @@ BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10){
 		DbgPrintfMine("TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10) 错误");
 		return FALSE;
 	}
+}
+
+BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName){
+	//检测技能是否在快捷栏上存在
+	int niIndex = g_tF1_F10List.getData()->getIndexByName(szpSkillName);
+	if(niIndex >= 0){
+		return TRUE;
+	}
+	//需要找空位置放置技能
+	niIndex = g_tF1_F10List.getData()->getEmptyIndex();
+	if(niIndex == -1){
+		DbgPrintfMine("快捷栏已满！");
+		return FALSE;
+	}
+	BOOL result = dropSkillF1F10(szpSkillName, niIndex);
+
+	return result;
 }
 
 //--------------------------------------快捷键代码--------------------------------------------------
@@ -589,6 +625,7 @@ int TF1_F10_LIST_OBJ::getIndexByName(char* szpSkillName){
 	for(int i = 0; i < F1F10Size; i++){
 		if(tF1F10List[i].ndType != NULL && strcmp(tF1F10List[i].szpSkillName, szpSkillName) == 0){
 			return i;
+			break;//少占CPU时间
 		}
 
 	}
@@ -630,18 +667,21 @@ BOOL TF1_F10_LIST_OBJ::useSkillByName(char* szpSkillName){
 	int emptyIndex = -1;
 	niIndex = getIndexByName(szpSkillName);//根据名字获取在快捷栏上的位置
 	if(niIndex == -1){
+		/*
 		//放置技能到快捷栏
 		emptyIndex = getEmptyIndex();
 		if(emptyIndex != -1){//技能栏未满
 			g_tSkillList.getData()->dropSkillF1F10(szpSkillName, emptyIndex);
-			useSkillByIndex(emptyIndex);
 		}else{
 			DbgPrintfMine("快捷栏已满");
 			return FALSE;
 		}
-	}else{
-		useSkillByIndex(niIndex);
+		*/
+		DbgPrintfMine("技能[%s]未放置", szpSkillName);
+
+		return FALSE;
 	}
+	useSkillByIndex(niIndex);
 
 	return TRUE;
 }

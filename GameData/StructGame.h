@@ -147,7 +147,8 @@ typedef struct TROLE_OBJ{
 	TROLE_OBJ* TROLE_OBJ::getData();
 	BOOL TROLE_OBJ::selectObj(DWORD ndIndexByObj);
 	BOOL TROLE_OBJ::selectMonsterByNear();//选择最近的怪物
-	BOOL TROLE_OBJ::AutoAttackMonster();//自动打怪
+	BOOL TROLE_OBJ::autoAttackMonster();//自动打怪
+	BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName);//使用技能自动打怪
 	DWORD TROLE_OBJ::getSelectObjType();//返回选择的类型 obj+0x8=0x2E
 }_TROLE_OBJ;
 
@@ -173,6 +174,7 @@ typedef struct TSKILL_LIST_OBJ{
 	TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData();
 	void TSKILL_LIST_OBJ::dbgPrintMsg();
 	BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10);
+	BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName);
 }_TSKILL_LIST_OBJ;
 
 #define F1F10Size 10

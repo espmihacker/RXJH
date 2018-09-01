@@ -21,6 +21,18 @@ LRESULT CALLBACK GameWndProc(
 				g_tBackPackListObj.useGoodByIndex((char*)lpArg->lParam);
 				DbgPrintfMine("使用[金创药(小)]成功！\r\n");
 				break;
+			case MSG_DROPSKILL2F1F10:
+				g_tSkillList.getData()->dropSkillF1F10((char*)lpArg->lParam);
+				break;
+			case MSG_USESKILLBYNAME:
+				g_tSkillList.getData()->dropSkillF1F10((char*)lpArg->lParam);
+				g_tF1_F10List.getData()->useSkillByName((char*)lpArg->lParam);
+				break;
+			case MSG_AUTOATTACKBYSKILL:
+				msgDropSkillF1F10((char*)lpArg->lParam);
+				//char* szpSkillName = ((char*)lpArg->lParam);
+				g_tRoleObj.getData()->autoAttackMonsterBySkill((char*)lpArg->lParam);
+				break;
 			case MSG_TEST:
 				//g_tMonsterListObj.getData()->dbgPrintMsg();
 				
@@ -70,8 +82,26 @@ DWORD unHookMainThread(){
 	return 1;
 }
 
-DWORD msgUserGoodsForName(char* szpName){
-	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_USEGOODBYNAME, (LPARAM)szpName);
+DWORD msgUserGoodsForName(char* szpGoodName){
+	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_USEGOODBYNAME, (LPARAM)szpGoodName);
+
+	return 1;
+}
+
+DWORD msgDropSkillF1F10(char* szpSkillName){
+	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_DROPSKILL2F1F10, (LPARAM)szpSkillName);
+
+	return 1;
+}
+
+DWORD msgUseSkillByName(char* szpSkillName){
+	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_USESKILLBYNAME, (LPARAM)szpSkillName);
+
+	return 1;
+}
+
+DWORD msgAutoAttackMonsterBySkill(char* szpSkillName){
+	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_AUTOATTACKBYSKILL, (LPARAM)szpSkillName);
 
 	return 1;
 }
