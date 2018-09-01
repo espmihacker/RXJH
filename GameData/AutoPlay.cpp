@@ -6,7 +6,15 @@ CAutoPlay g_cAutoPlay;
 CAutoPlay::CAutoPlay(void)
 {
 	ndFrequencyForAttackPickThread = 1000;//打怪间隔
-	hT_AutoAttackPick = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadPro_AutoAttackMonsterAndPickGood, NULL, CREATE_SUSPENDED, NULL);//安全属性 堆栈大小 回调函数 NULL 
+	/* 采用汇编的形式逃避编译器的解释 */
+	DWORD proc = NULL;
+	__asm
+	{
+		mov eax, ThreadPro_AutoAttackMonsterAndPickGood
+		mov proc,eax
+	}
+	//__stdcall
+	hT_AutoAttackPick = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)proc, this, CREATE_SUSPENDED, NULL);//安全属性 堆栈大小 回调函数 NULL 
 }
 
 
@@ -16,14 +24,19 @@ CAutoPlay::~CAutoPlay(void)
 	TerminateThread(hT_AutoAttackPick, 1);
 }
 
-void CAutoPlay::ThreadPro_AutoAttackMonsterAndPickGood(void){
+//__thiscall
+void CAutoPlay::ThreadPro_AutoAttackMonsterAndPickGood(LPVOID lpData){
+	__asm{
+		mov ecx,lpData
+		mov this,ecx
+	}
 	while(TRUE){
 		//捡物
 		//打怪
-		if(g_cAutoPlay.isAutoAttackMonster){
+		if(isAutoAttackMonster){
 			msgAutoAttackMonsterBySkill("攻击");
 		}
-		Sleep(g_cAutoPlay.ndFrequencyForAttackPickThread);
+		Sleep(ndFrequencyForAttackPickThread);
 	}
 }
 
