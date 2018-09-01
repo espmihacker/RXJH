@@ -38,7 +38,8 @@ typedef struct TROLE_PROPERTY{ //人物属性结构
 	//+A0		8byte,升级总经验
 	QWORD nqExpNextRequire;
 	//+A8		(10)
-	//+AC		可能是历练
+	//+AC		历练
+	DWORD ndLiLian;
 	//+B0		心
 	DWORD nd心;
 	//+B4		气
@@ -152,7 +153,6 @@ typedef struct TROLE_OBJ{
 	DWORD TROLE_OBJ::getSelectObjType();//返回选择的类型 obj+0x8=0x2E
 }_TROLE_OBJ;
 
-
 typedef struct  TSKILL_OBJ{
 	DWORD ndIndexBySkill;
 	//+8		//分类（1b-技能分类<书>	1c-技能对象分类）
@@ -161,10 +161,13 @@ typedef struct  TSKILL_OBJ{
 	DWORD ndIndexByAll;
 	//+5c		//对象名字
 	char* szpName;
+	//+ac		//所需等级
+	DWORD ndRequireLevel;
 	//+0b1	//技能所属职业
 	//+1f6	//（2字节）是否已学技能（1-已学 0-未学）
 	BOOL isUseable;
-
+	//+268	//历练需求
+	DWORD ndRequireLiLian;
 	DWORD ndObjBase;//对象基址
 }_TSKILL_OBJ;
 
@@ -175,6 +178,9 @@ typedef struct TSKILL_LIST_OBJ{
 	void TSKILL_LIST_OBJ::dbgPrintMsg();
 	BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10);
 	BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName);
+	BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex);//修炼技能
+	BOOL TSKILL_LIST_OBJ::practiceSkill(char* szpSkillName);//修炼技能
+	BOOL TSKILL_LIST_OBJ::isCanStudy(DWORD ndIndex);//技能是否可学
 }_TSKILL_LIST_OBJ;
 
 #define F1F10Size 10

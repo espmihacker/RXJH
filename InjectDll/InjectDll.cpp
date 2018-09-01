@@ -5,6 +5,7 @@
 #include <Windows.h>
 
 #define GameClasName "D3D Window"
+#define GameCaption "YB_OnlineClient"
 #define dllName "MFC_DLL.dll"
 
 void InjectDll(HWND hGame, const char* dllFullPath) {
@@ -47,7 +48,7 @@ void InjectDll(HWND hGame, const char* dllFullPath) {
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//获取游戏窗口句柄
-	HWND hGame = FindWindow(GameClasName, NULL);
+	HWND hGame = FindWindow(GameClasName, GameCaption);
 
 	//获取当前路径
 	char dirName[256] = "";

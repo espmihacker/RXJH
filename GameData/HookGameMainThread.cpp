@@ -54,8 +54,15 @@ LRESULT CALLBACK GameWndProc(
 				//放置技能
 				//g_tSkillList.getData()->dropSkillF1F10("魔龙斩", 2);
 
-				g_tF1_F10List.getData()->useSkillByName("魔龙斩");
+				//g_tF1_F10List.getData()->useSkillByName("魔龙斩");
 
+				//修炼技能
+				//g_tSkillList.getData()->practiceSkill("猛龙破天");
+
+				//测试学习技能条件
+				for(int i = 0; i < 32; i++){
+					g_tSkillList.getData()->isCanStudy(i);
+				}
 				
 				break;
 			}

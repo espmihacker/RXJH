@@ -35,6 +35,7 @@ BEGIN_MESSAGE_MAP(CMainDialogWnd, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CMainDialogWnd::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_BUTTON4, &CMainDialogWnd::OnBnClickedButton4)
 	ON_BN_CLICKED(IDC_BUTTON5, &CMainDialogWnd::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTON6, &CMainDialogWnd::OnBnClickedButton6)
 END_MESSAGE_MAP()
 
 
@@ -120,7 +121,7 @@ void CMainDialogWnd::OnBnClickedButton4()
 void CMainDialogWnd::OnBnClickedButton5()
 {
 
-	//msgTest(NULL);
+	msgTest(NULL);
 	//Sleep(200);
 	//msgTest(NULL);
 
@@ -128,5 +129,22 @@ void CMainDialogWnd::OnBnClickedButton5()
 	//msgUseSkillByName("魔龙斩");
 
 	//使用技能自动打怪
-	msgAutoAttackMonsterBySkill("魔龙斩");
+	//msgAutoAttackMonsterBySkill("魔龙斩");
+}
+
+
+void CMainDialogWnd::OnBnClickedButton6()
+{
+	m_PageMainTab.ShowWindow(SW_SHOW);
+}
+
+//重写的方法
+BOOL CMainDialogWnd::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	m_PageMainTab.Create(CPageMainTab::IDD);//参数为ID
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// 异常: OCX 属性页应返回 FALSE
 }

@@ -13,11 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="HookMainThread">
-      <UniqueIdentifier>{7fa93ea0-85ff-4b9a-a429-f053b24a1622}</UniqueIdentifier>
-    </Filter>
     <Filter Include="全局变量">
       <UniqueIdentifier>{3d563b80-a54c-4e44-983f-7db62a03bf7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="挂机类">
+      <UniqueIdentifier>{f5dcfa22-beb0-4891-b7d2-e82c27d11f28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="主线程">
+      <UniqueIdentifier>{7fa93ea0-85ff-4b9a-a429-f053b24a1622}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -31,7 +34,7 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="HookGameMainThread.h">
-      <Filter>HookMainThread</Filter>
+      <Filter>主线程</Filter>
     </ClInclude>
     <ClInclude Include="global_Var.h">
       <Filter>全局变量</Filter>
@@ -39,13 +42,19 @@
     <ClInclude Include="TypeObj.h">
       <Filter>全局变量</Filter>
     </ClInclude>
+    <ClInclude Include="AutoPlay.h">
+      <Filter>挂机类</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HookGameMainThread.cpp">
-      <Filter>HookMainThread</Filter>
+      <Filter>主线程</Filter>
     </ClCompile>
     <ClCompile Include="StructGame.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoPlay.cpp">
+      <Filter>挂机类</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -74,6 +74,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutoPlay.h" />
     <ClInclude Include="BaseGame.h" />
     <ClInclude Include="global_Var.h" />
     <ClInclude Include="HookGameMainThread.h" />
@@ -81,6 +82,7 @@
     <ClInclude Include="TypeObj.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AutoPlay.cpp" />
     <ClCompile Include="HookGameMainThread.cpp" />
     <ClCompile Include="StructGame.cpp" />
   </ItemGroup>
