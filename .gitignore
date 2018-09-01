@@ -19,6 +19,8 @@ Thumbs.db
 *.log
 *.opensdf
 *.ipch
+*.sdf
+ipch/
 [Bb]in
 [Dd]ebug*/
 *.lib

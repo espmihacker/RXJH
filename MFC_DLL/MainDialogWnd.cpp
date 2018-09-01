@@ -120,4 +120,6 @@ void CMainDialogWnd::OnBnClickedButton4()
 void CMainDialogWnd::OnBnClickedButton5()
 {
 	msgTest(NULL);
+	//Sleep(200);
+	//msgTest(NULL);
 }
