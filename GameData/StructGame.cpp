@@ -5,6 +5,7 @@
 #include <math.h>
 #include "TypeObj.h"
 
+TROLE_PROPERTY g_tRoleProperty;
 TACTION_LIST_OBJ g_tActionListObj;		//动作结构列表对象
 TBACK_PACK_LIST_OBJ g_tBackPackListObj;	//背包结构列表对象
 TMONSTER_LIST_OBJ g_tMonsterListObj;	//怪物结构列表对象
@@ -50,6 +51,7 @@ TROLE_PROPERTY* TROLE_PROPERTY::getData(){
 		naMaxAngry = *(DWORD*)(Base_RolePropetry + 0x94);
 		nqExp = *(QWORD*)(Base_RolePropetry + 0x98);
 		nqExpNextRequire = *(QWORD*)(Base_RolePropetry + 0xa0);
+		ndLiLian = *(DWORD*)(Base_RolePropetry + 0xac);
 		nd心 = *(DWORD*)(Base_RolePropetry + 0xb0);
 		nd气 = *(DWORD*)(Base_RolePropetry + 0xb4);
 		nd体 = *(DWORD*)(Base_RolePropetry + 0xb8);
@@ -425,7 +427,7 @@ BOOL TROLE_OBJ::selectMonsterByNear(){
 		//	ndIndex = g_tMonsterListObj.getData()->tMonsterList[i].ndIndexByAllObj;
 		//}
 		TMONSTER_OBJ obj = g_tMonsterListObj.getData()->tMonsterList[i];
-		if(obj.ndIndexByAllObj != 0 && obj.ndDistance < ndDistance){
+		if(obj.ndIndexByAllObj != 0 && obj.ndDistance < ndDistance && obj.ndLevel == 8){
 			ndDistance = obj.ndDistance;
 			ndIndex = obj.ndIndexByAllObj;//最近距离的怪物ID
 			
@@ -460,13 +462,33 @@ DWORD TROLE_OBJ::getSelectObjType(){
 }
 
 //自动打怪
-BOOL TROLE_OBJ::AutoAttackMonster(){
+BOOL TROLE_OBJ::autoAttackMonster(){
 	//选怪
 	if(getSelectObjType() != TYPE_MONSTER){
 		selectMonsterByNear();
 	}
 	//攻击
 	g_tActionListObj.getData()->UseAction("攻击");
+
+	return TRUE;
+}
+
+BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName){
+	//选怪
+	if(getSelectObjType() != TYPE_MONSTER){
+		selectMonsterByNear();
+	}
+/*
+	//放置技能
+	BOOL isDroped = g_tSkillList.getData()->dropSkillF1F10(szpSkillName);
+	//使用技能攻击
+	if(isDroped){
+		g_tF1_F10List.getData()->useSkillByName(szpSkillName);//技能攻击
+	}else{
+		g_tActionListObj.getData()->UseAction("攻击");;//普通攻击
+	}
+*/
+	g_tF1_F10List.getData()->useSkillByName(szpSkillName);//技能攻击
 
 	return TRUE;
 }
@@ -478,8 +500,10 @@ TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){
 	//+8		//分类（1b-技能分类<书>	1c-技能对象分类）
 	//+0c		//
 	//+5c		//对象名字
-	//+0b1	//技能所属职业
-	//+1f6	//（2字节）是否已学技能（1-已学 0-未学）
+	//+ac		//所需等级
+	//+0b1		//技能所属职业
+	//+1f6		//（2字节）是否已学技能（1-已学 0-未学）
+	//+268		//所需历练
 	try{
 		DWORD *ndPSkillList = NULL;
 		ndPSkillList = (DWORD*)((*(DWORD*)Base_SkillList) + 0x410);
@@ -492,7 +516,9 @@ TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){
 				tSkillList[i].ndType = *(DWORD*)(ndPSkillList[i] + 0x8);
 				tSkillList[i].ndIndexByAll = *(DWORD*)(ndPSkillList[i] + 0xc);
 				tSkillList[i].szpName = (char*)(ndPSkillList[i] + 0x5c);
+				tSkillList[i].ndRequireLevel = *(DWORD*)(ndPSkillList[i] + 0xac);
 				tSkillList[i].isUseable = *(WORD*)(ndPSkillList[i] + 0x1f6);
+				tSkillList[i].ndRequireLiLian = *(DWORD*)(ndPSkillList[i] + 0x268);
 			}
 		}
 
@@ -503,16 +529,44 @@ TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){
 	}
 }
 
+BOOL TSKILL_LIST_OBJ::isCanStudy(DWORD ndIndex){
+	DWORD ndIsStudy = NULL;//当前技能未学
+	DWORD ndCurrentLiLian = NULL;//当前历练值
+	DWORD ndCurrentLevel = NULL;//当前等级
+	DWORD ndSkillLiLian = NULL;//技能历练需求
+	DWORD ndSkillLiLevel = NULL;//技能等级需求
+	
+	if(g_tSkillList.getData()->tSkillList[ndIndex].ndType == NULL){
+		DbgPrintfMine("当前技能为空！");
+		return FALSE;
+	}
+
+	ndIsStudy = g_tSkillList.getData()->tSkillList[ndIndex].isUseable;
+	ndCurrentLiLian = g_tRoleProperty.getData()->ndLiLian;
+	ndCurrentLevel = g_tRoleProperty.getData()->ndLevel;
+	ndSkillLiLian = g_tSkillList.getData()->tSkillList[ndIndex].ndRequireLiLian;
+	ndSkillLiLevel = g_tSkillList.getData()->tSkillList[ndIndex].ndRequireLevel;
+
+	if(ndIsStudy != 1 && ndCurrentLiLian >= ndSkillLiLian && ndCurrentLevel >= ndSkillLiLevel){
+		DbgPrintfMine("当前技能可学！");
+		return TRUE;
+	}
+	DbgPrintfMine("当前技能不可学！");
+	return FALSE;
+}
+
 void TSKILL_LIST_OBJ::dbgPrintMsg(){
 	this->getData();
 	for(int i = 0; i < 32; i++){
 		if(this->tSkillList[i].szpName != NULL) {
-			DbgPrintfMine("%s %d %2X %4X 可用否（%d）\r\n",
+			DbgPrintfMine("%s %d %2X %4X 可用否（%d）|等级：%d 历练：%d\r\n",
 				this->tSkillList[i].szpName,
 				this->tSkillList[i].ndIndexBySkill,
 				this->tSkillList[i].ndType,
 				this->tSkillList[i].ndIndexByAll,
-				this->tSkillList[i].isUseable
+				this->tSkillList[i].isUseable,
+				this->tSkillList[i].ndRequireLevel,
+				this->tSkillList[i].ndRequireLiLian
 				);
 		}
 	}
@@ -538,7 +592,6 @@ BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10){
 		if(ndObjBase == NULL){
 			return FALSE;
 		}
-		DbgPrintfMine("-------------------");
 		__asm{
 			mov edi,Base_DropSkillArg
 			mov edi,[edi]
@@ -561,7 +614,69 @@ BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10){
 	}
 }
 
-//--------------------------------------快捷键代码--------------------------------------------------
+BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName){
+	//检测技能是否在快捷栏上存在
+	int niIndex = g_tF1_F10List.getData()->getIndexByName(szpSkillName);
+	if(niIndex >= 0){
+		return TRUE;
+	}
+	//需要找空位置放置技能
+	niIndex = g_tF1_F10List.getData()->getEmptyIndex();
+	if(niIndex == -1){
+		DbgPrintfMine("快捷栏已满！");
+		return FALSE;
+	}
+	BOOL result = dropSkillF1F10(szpSkillName, niIndex);
+
+	return result;
+}
+
+//修炼技能
+BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex){
+	try{
+		if(!TSKILL_LIST_OBJ::isCanStudy(ndIndex)){//技能无法学习，不满足条件！
+			return FALSE;
+		}
+		DWORD ndObj = *(DWORD*)Base_SkillList + 0x410;
+		ndObj = ((DWORD*)ndObj)[ndIndex];//这句比较难,拆分如下：
+/**************************************************************
+		DWORD *ndPObj = (DWORD*)ndObj;
+		ndObj = ndPObj[ndIndex];
+***************************************************************/
+		__asm
+		{
+			mov edx,ndObj
+			mov ecx,dword ptr ds:[Base_PracticeSkillArg1]
+			mov eax,dword ptr ds:[edx+0x4c]
+				push ecx
+				push eax
+				sub esp,0x150
+				lea ecx,[esp]
+				push ecx
+				mov ecx,dword ptr ds:[Base_PracticeSkillArg2]
+				mov eax,BaseCall_PracticeSkill
+				call eax
+				add esp,0x150
+		}
+		return TRUE;
+	}catch(...){
+		DbgPrintfMine("TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex) 错误");
+		return FALSE;
+	}
+}
+
+BOOL TSKILL_LIST_OBJ::practiceSkill(char* szpSkillName){
+	this->getData(); //初始化数组
+	for(int i = 0; i < 32; i++){
+		if(tSkillList[i].ndType != NULL && strcmp(szpSkillName, tSkillList[i].szpName) == 0){
+			practiceSkill(i);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+//------------------------------------快捷键代码--------------------------------------------------
 
 TF1_F10_LIST_OBJ* TF1_F10_LIST_OBJ::getData(){
 	try
@@ -589,6 +704,7 @@ int TF1_F10_LIST_OBJ::getIndexByName(char* szpSkillName){
 	for(int i = 0; i < F1F10Size; i++){
 		if(tF1F10List[i].ndType != NULL && strcmp(tF1F10List[i].szpSkillName, szpSkillName) == 0){
 			return i;
+			break;//少占CPU时间
 		}
 
 	}
@@ -628,20 +744,27 @@ int TF1_F10_LIST_OBJ::getEmptyIndex(void){
 BOOL TF1_F10_LIST_OBJ::useSkillByName(char* szpSkillName){
 	int niIndex = -1;
 	int emptyIndex = -1;
+	if(strcmp(szpSkillName, "攻击") == 0){//如果是普通攻击
+		g_tActionListObj.UseAction("攻击");
+		return TRUE;
+	}
 	niIndex = getIndexByName(szpSkillName);//根据名字获取在快捷栏上的位置
 	if(niIndex == -1){
+		/*
 		//放置技能到快捷栏
 		emptyIndex = getEmptyIndex();
 		if(emptyIndex != -1){//技能栏未满
 			g_tSkillList.getData()->dropSkillF1F10(szpSkillName, emptyIndex);
-			useSkillByIndex(emptyIndex);
 		}else{
 			DbgPrintfMine("快捷栏已满");
 			return FALSE;
 		}
-	}else{
-		useSkillByIndex(niIndex);
+		*/
+		DbgPrintfMine("技能[%s]未放置", szpSkillName);
+
+		return FALSE;
 	}
+	useSkillByIndex(niIndex);
 
 	return TRUE;
 }

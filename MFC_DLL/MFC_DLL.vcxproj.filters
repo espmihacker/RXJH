@@ -10,6 +10,12 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="PageGuaJi.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PageMainTab.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MFC_DLL.h">
@@ -25,6 +31,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PageMainTab.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PageGuaJi.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

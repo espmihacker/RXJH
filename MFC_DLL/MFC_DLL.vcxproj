@@ -104,6 +104,8 @@
   <ItemGroup>
     <ClCompile Include="MainDialogWnd.cpp" />
     <ClCompile Include="MFC_DLL.cpp" />
+    <ClCompile Include="PageGuaJi.cpp" />
+    <ClCompile Include="PageMainTab.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -112,6 +114,8 @@
   <ItemGroup>
     <ClInclude Include="MainDialogWnd.h" />
     <ClInclude Include="MFC_DLL.h" />
+    <ClInclude Include="PageGuaJi.h" />
+    <ClInclude Include="PageMainTab.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
