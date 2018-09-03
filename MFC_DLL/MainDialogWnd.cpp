@@ -8,6 +8,7 @@
 #include "BaseGame.h"
 #include "StructGame.h"
 #include "HookGameMainThread.h"
+#include "global_Var.h"
 
 // CMainDialogWnd 对话框
 
@@ -97,6 +98,9 @@ void CMainDialogWnd::OnBnClickedBtnTest()
 	//if(bFlag){
 	//	TRACE("GameDebug:使用[金创药(小)]成功！\r\n");
 	//}
+
+	//g_tRoleObj.getData()->findWay(-250, 1180);
+	msgFindWay(-200, 900);
 }
 
 

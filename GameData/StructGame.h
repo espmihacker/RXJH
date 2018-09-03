@@ -151,6 +151,7 @@ typedef struct TROLE_OBJ{
 	BOOL TROLE_OBJ::autoAttackMonster();//自动打怪
 	BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName);//使用技能自动打怪
 	DWORD TROLE_OBJ::getSelectObjType();//返回选择的类型 obj+0x8=0x2E
+	BOOL TROLE_OBJ::findWay(int niX, int niY);//自动寻路
 }_TROLE_OBJ;
 
 typedef struct  TSKILL_OBJ{

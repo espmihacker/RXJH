@@ -33,6 +33,12 @@ LRESULT CALLBACK GameWndProc(
 				//char* szpSkillName = ((char*)lpArg->lParam);
 				g_tRoleObj.getData()->autoAttackMonsterBySkill((char*)lpArg->lParam);
 				break;
+			case MSG_FINDWAY:
+				{
+					int *niXY = (int*)lpArg->lParam;
+					g_tRoleObj.getData()->findWay(niXY[0], niXY[1]);
+				}
+				break;
 			case MSG_TEST:
 				//g_tMonsterListObj.getData()->dbgPrintMsg();
 				
@@ -109,6 +115,15 @@ DWORD msgUseSkillByName(char* szpSkillName){
 
 DWORD msgAutoAttackMonsterBySkill(char* szpSkillName){
 	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_AUTOATTACKBYSKILL, (LPARAM)szpSkillName);
+
+	return 1;
+}
+
+BOOL msgFindWay(int niX, int niY){
+	int niXY[2] = {0};
+	niXY[0] = niX;
+	niXY[1] = niY;
+	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_FINDWAY, (LPARAM)niXY);
 
 	return 1;
 }

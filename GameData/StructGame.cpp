@@ -493,6 +493,47 @@ BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName){
 	return TRUE;
 }
 
+BOOL TROLE_OBJ::findWay(int niX, int niY){
+	try{
+		__asm{
+			sub esp,34
+			mov eax,esp
+			mov ecx,niX
+			mov dword ptr ss:[eax+0],ecx//X
+			fild dword ptr ss:[eax+0]
+			fstp dword ptr ss:[eax+0]
+			mov dword ptr ss:[eax+4],0//Z
+			mov ecx,niY
+			mov dword ptr ss:[eax+8],ecx//Y
+			fild dword ptr ss:[eax+8]
+			fstp dword ptr ss:[eax+8]
+			mov dword ptr ss:[eax+0x0c],0
+			mov dword ptr ss:[eax+0x10],0
+			mov dword ptr ss:[eax+0x14],0
+			mov dword ptr ss:[eax+0x18],0xFFFF
+			mov dword ptr ss:[eax+0x1c],1//以下的值无关紧要
+			mov dword ptr ss:[eax+0x20],1
+			mov dword ptr ss:[eax+0x24],0
+			mov dword ptr ss:[eax+0x28],0
+			mov dword ptr ss:[eax+0x2c],0
+			mov dword ptr ss:[eax+0x30],0
+			push 54
+			push eax
+			push 0x3ef
+			MOV     ECX,DWORD PTR DS:[Base_RoleObj]
+			MOV     EDX,DWORD PTR DS:[ECX]
+			MOV     EDX,DWORD PTR DS:[EDX+4]
+			CALL    EDX
+			add esp,34
+		}
+
+		return TRUE;
+	}catch(...){
+		DbgPrintfMine("TROLE_OBJ::findWay(int niX, int niY) 错误");
+		return FALSE;
+	}
+}
+
 //--------------------------------------技能列表代码--------------------------------------------------
 
 TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){

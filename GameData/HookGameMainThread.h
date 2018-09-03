@@ -7,6 +7,7 @@
 #define MSG_USESKILLBYNAME 1001 //使用技能
 #define MSG_DROPSKILL2F1F10 1002 //使用技能
 #define MSG_AUTOATTACKBYSKILL 1003 //使用技能自动打怪
+#define MSG_FINDWAY 1004			//自动寻路
 
 //以下的函数可以在非主线程函数执行
 DWORD msgTest(LPVOID lpData);
@@ -22,5 +23,8 @@ DWORD msgDropSkillF1F10(char* szpSkillName);
 
 //打怪
 DWORD msgAutoAttackMonsterBySkill(char* szpSkillName);
+
+//寻路
+BOOL msgFindWay(int niX, int niY);
 
 #endif
