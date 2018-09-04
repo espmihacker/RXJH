@@ -66,10 +66,12 @@ LRESULT CALLBACK GameWndProc(
 				//g_tSkillList.getData()->practiceSkill("猛龙破天");
 
 				//测试学习技能条件
-				for(int i = 0; i < 32; i++){
-					g_tSkillList.getData()->isCanStudy(i);
-				}
-				
+				//for(int i = 0; i < 32; i++){
+				//	g_tSkillList.getData()->isCanStudy(i);
+				//}
+				//
+				g_tBackPackListObj.getData()->selectGoods(1);
+				g_tBackPackListObj.getData()->moveGoodToDepot(1);
 				break;
 			}
 			return 1;

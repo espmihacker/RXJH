@@ -91,6 +91,8 @@ typedef struct TBACK_PACK_LIST_OBJ{//背包对象
 	int useGoodByIndex(DWORD ndIndex);//根据下标使用背包物品
 	int getGoodIndexByName(char* szpGoodName);//根据物品名查询并返回物品下标
 	BOOL useGoodByIndex(char* szpGoodName);//根据物品名使用背包物品
+	DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex);//选中背包中的某一格
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex = 1);//移动选中的物品到仓库
 }_TBACK_PACK_LIST_OBJ;
 
 //怪物结构

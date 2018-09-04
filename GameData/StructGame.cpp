@@ -35,6 +35,19 @@ void DbgPrintfMine(char* pszFormat,...){
 #endif
 }
 
+HWND getGameWndHandle() {
+	try
+	{
+		HWND hGame = *(HWND*)Base_GameWndHandle;
+		return hGame;
+	}
+	catch (...)
+	{
+		return NULL;
+	}
+
+}
+
 //--------------------------------------角色相关代码--------------------------------------------------
 TROLE_PROPERTY* TROLE_PROPERTY::getData(){
 	try
@@ -201,17 +214,53 @@ BOOL TBACK_PACK_LIST_OBJ::useGoodByIndex(char* szpGoodName){
 	return TRUE;
 }
 
-HWND getGameWndHandle() {
+DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex){//选中背包中的某一格
 	try
 	{
-		HWND hGame = *(HWND*)Base_GameWndHandle;
-		return hGame;
+		DWORD ndObj = NULL;
+		__asm{
+			mov ebx,ndIndex
+			mov edi,dword ptr ds:[Base_BackpackList]//背包/仓库基址
+			MOV     EAX,DWORD PTR DS:[EDI+EBX*4+0x410]
+			mov		ndObj,eax			//取出对象
+			MOV     ECX,DWORD PTR DS:[Base_SelectGoodAndSkill]
+			MOV     DWORD PTR DS:[ECX+0x228],EAX
+			MOV     EDX,DWORD PTR DS:[Base_SelectGoodAndSkill]
+			MOV     BYTE PTR DS:[EDX+0x230],1
+			MOV     EAX,DWORD PTR DS:[Base_SelectGoodAndSkill]
+			MOV     ECX,DWORD PTR DS:[EAX+0x228]
+			MOV     DX,WORD PTR DS:[EDI+0x1608]
+		}
+		return ndObj;
 	}
 	catch (...)
 	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex) 错误");
 		return NULL;
 	}
-
+}
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex){//移动选中的物品到仓库
+	try
+	{
+		__asm{
+			mov edi,dword ptr ds:[Base_DepotList]
+			mov edx,dword ptr ds:[edi+0x1608]
+			mov eax,dword ptr ds:[edi+0x1c10]
+			mov ecx,ndIndex
+			push ndIndex
+				push edx
+				push eax
+				mov ecx,edi
+				mov eax,BaseCall_MoveGoods
+				call eax
+		}
+		return TRUE;
+	}
+	catch (...)
+	{
+		return FALSE;
+	}
+	
 }
 
 //--------------------------------------怪物相关代码--------------------------------------------------

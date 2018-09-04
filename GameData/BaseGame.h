@@ -4,6 +4,7 @@
 
 #define Base_RolePropetry 0x02AF2C78	//人物对象基址
 #define Base_BackpackList 0x02D1762C	//背包对象基址
+#define Base_DepotList 0x2D207B4		//仓库列表基址
 #define Base_NearObjList 0x041538E8		//怪物列表对象
 #define Base_ActionList	0x02d17be0		////dc [[02d17be0]+410+4*0]+5c
 #define Base_RoleObj 0x2D3D594			//玩家对象基址《自己》
@@ -23,6 +24,7 @@
 #define BaseCall_DropSkill 0x00814e50			//放置技能call
 #define BaseCall_F1_F10Call 0x006ef590			//快捷键CALL
 #define BaseCall_PracticeSkill 0x0053CB00		//修炼技能CALL
+#define BaseCall_MoveGoods 0x00814E50			//移动物品CALL
 
 //OFFSET
 #define Offset_ObjType		0x8			//对象类型偏移
