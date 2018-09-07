@@ -35,19 +35,6 @@ void DbgPrintfMine(char* pszFormat,...){
 #endif
 }
 
-HWND getGameWndHandle() {
-	try
-	{
-		HWND hGame = *(HWND*)Base_GameWndHandle;
-		return hGame;
-	}
-	catch (...)
-	{
-		return NULL;
-	}
-
-}
-
 //--------------------------------------角色相关代码--------------------------------------------------
 TROLE_PROPERTY* TROLE_PROPERTY::getData(){
 	try
@@ -104,7 +91,7 @@ TBACK_PACK_LIST_OBJ* TBACK_PACK_LIST_OBJ::getData(){
 	try
 	{
 		DWORD ndBase = *(DWORD*)Base_BackpackList;
-		DWORD ndFirstGoodBase = ndBase + 0x410;
+		DWORD ndFirstGoodBase = ndBase + 0x434;
 		DWORD ndObj = NULL;
 		for(int i = 0; i < nBackPackSize; i++) {
 			ndObj = *(DWORD*)(ndFirstGoodBase + 4 * i);//取出第i格对象的地址
@@ -307,6 +294,7 @@ TMONSTER_LIST_OBJ* TMONSTER_LIST_OBJ::getData(){
 }
 
 BOOL TMONSTER_LIST_OBJ::dbgPrintMsg(){
+	this->getData();
 	for(int i = 0; i < 20; i++){
 		if(tMonsterList[i].ndLevel == NULL) {
 			continue;
@@ -335,7 +323,7 @@ TACTION_LIST_OBJ* TACTION_LIST_OBJ::getData(){
 		DWORD ndFirstObj = 0;
 		DWORD ndObj = NULL;
 
-		ndFirstObj = *(DWORD*)(Base_ActionList) + 0x410;
+		ndFirstObj = *(DWORD*)(Base_ActionList) + 0x434;
 		for(int i = 0; i < 12; i++){
 			ndObj = *(DWORD*)(ndFirstObj + 4 * i);
 			tList[i].szpName = (char*)(ndObj + 0x5c);
@@ -596,7 +584,7 @@ TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){
 	//+268		//所需历练
 	try{
 		DWORD *ndPSkillList = NULL;
-		ndPSkillList = (DWORD*)((*(DWORD*)Base_SkillList) + 0x410);
+		ndPSkillList = (DWORD*)((*(DWORD*)Base_SkillList) + 0x434);
 		memset(this, 0, sizeof(TSKILL_LIST_OBJ));
 
 		for (int i = 0; i < 32; i++){
@@ -685,8 +673,8 @@ BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10){
 		__asm{
 			mov edi,Base_DropSkillArg
 			mov edi,[edi]
-			mov edx,dword ptr ds:[edi+0x1608]
-			mov eax,dword ptr ds:[edi+0x1c10]
+			mov edx,dword ptr ds:[edi+0x162c]
+			mov eax,dword ptr ds:[edi+0x1c58]
 			mov ecx,ndIndexF1F10
 				push ecx
 				push edx
@@ -728,7 +716,7 @@ BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex){
 			return FALSE;
 		}
 		DWORD ndObj = *(DWORD*)Base_SkillList + 0x410;
-		ndObj = ((DWORD*)ndObj)[ndIndex];//这句比较难,拆分如下：
+		ndObj = ((DWORD*)ndObj)[ndIndex];//这句较难理解,可拆分如下：
 /**************************************************************
 		DWORD *ndPObj = (DWORD*)ndObj;
 		ndObj = ndPObj[ndIndex];
@@ -772,7 +760,7 @@ TF1_F10_LIST_OBJ* TF1_F10_LIST_OBJ::getData(){
 	try
 	{
 		memset(this, 0, sizeof(TF1_F10_LIST_OBJ));
-		DWORD *baseF1_F10 = (DWORD*)((*(DWORD*)Base_F1_F10List)+0x410);
+		DWORD *baseF1_F10 = (DWORD*)((*(DWORD*)Base_F1_F10List)+0x434);
 		for(int i = 0; i < F1F10Size; i++){
 			if(baseF1_F10[i] != NULL){
 				this->tF1F10List[i].ndType = *(DWORD*)(baseF1_F10[i] + 0x08);
@@ -809,7 +797,7 @@ BOOL TF1_F10_LIST_OBJ::useSkillByIndex(int index){
 				mov eax,index
 				push eax
 				mov ecx,Base_F1_F10Arg
-				mov ecx,[ecx+0x27c]
+				mov ecx,[ecx+0x280]
 				mov eax,BaseCall_F1_F10Call
 				call eax
 		}
@@ -871,4 +859,17 @@ DWORD play2PointDistance(float x1, float y1, float x2, float y2){
 	ndDistanse = (DWORD)c;
 
 	return ndDistanse;
+}
+
+HWND getGameWndHandle() {
+	try
+	{
+		HWND hGame = *(HWND*)Base_GameWndHandle;
+		return hGame;
+	}
+	catch (...)
+	{
+		return NULL;
+	}
+
 }

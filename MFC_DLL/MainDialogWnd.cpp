@@ -44,63 +44,63 @@ END_MESSAGE_MAP()
 
 void CMainDialogWnd::OnBnClickedBtnTest()
 {
-	//TRACE("GameDebug:我的调试信息\r\n");
-	//TRACE("GameDebug:人物名=%s\r\n", BaseRole);
-	//TRACE("GameDebug:人物等级=%d\r\n", *(BYTE*)(BaseRole + 0x34));
-	//TRACE("GameDebug:人物名声=%s\r\n", (char*)(BaseRole + 0x36));
+	//TRACE("GameData:我的调试信息\r\n");
+	//TRACE("GameData:人物名=%s\r\n", BaseRole);
+	//TRACE("GameData:人物等级=%d\r\n", *(BYTE*)(BaseRole + 0x34));
+	//TRACE("GameData:人物名声=%s\r\n", (char*)(BaseRole + 0x36));
 
-	//TRACE("GameDebug:人物HP=%d | %d\r\n", *(DWORD*)(BaseRole + 0x80), *(DWORD*)(BaseRole + 0x8C));
-	//TRACE("GameDebug:人物MP=%d | %d\r\n", *(DWORD*)(BaseRole + 0x84), *(DWORD*)(BaseRole + 0x90));
-	//TRACE("GameDebug:愤怒值=%d\r\n", *(DWORD*)(BaseRole + 0x88));
-	//TRACE("GameDebug:金币值=%d\r\n", *(DWORD*)(BaseRole + 0xE4));
+	//TRACE("GameData:人物HP=%d | %d\r\n", *(DWORD*)(BaseRole + 0x80), *(DWORD*)(BaseRole + 0x8C));
+	//TRACE("GameData:人物MP=%d | %d\r\n", *(DWORD*)(BaseRole + 0x84), *(DWORD*)(BaseRole + 0x90));
+	//TRACE("GameData:愤怒值=%d\r\n", *(DWORD*)(BaseRole + 0x88));
+	//TRACE("GameData:金币值=%d\r\n", *(DWORD*)(BaseRole + 0xE4));
 
 	TROLE_PROPERTY role;
 	TROLE_PROPERTY* roleData = role.getData();
-	TRACE("GameDebug:人物名字=%s\r\n", roleData->szpRoleName);
-	TRACE("GameDebug:人物等级=%d\r\n", roleData->ndLevel);
-	TRACE("GameDebug:人物职业=%d\r\n", roleData->ndLevel职业);
-	TRACE("GameDebug:人物名声=%s\r\n", roleData->szp名声);
-	TRACE("GameDebug:人物HP=%d | %d\r\n", roleData->ndHp, roleData->ndMaxHp);
-	TRACE("GameDebug:人物MP=%d | %d\r\n", roleData->ndMp, roleData->ndMaxMp);
-	TRACE("GameDebug:愤怒值=%d\r\n", roleData->ndAngry);
+	TRACE("GameData:人物名字=%s\r\n", roleData->szpRoleName);
+	TRACE("GameData:人物等级=%d\r\n", roleData->ndLevel);
+	TRACE("GameData:人物职业=%d\r\n", roleData->ndLevel职业);
+	TRACE("GameData:人物名声=%s\r\n", roleData->szp名声);
+	TRACE("GameData:人物HP=%d | %d\r\n", roleData->ndHp, roleData->ndMaxHp);
+	TRACE("GameData:人物MP=%d | %d\r\n", roleData->ndMp, roleData->ndMaxMp);
+	TRACE("GameData:愤怒值=%d\r\n", roleData->ndAngry);
 	
-	TRACE("GameDebug:心=%d\r\n", roleData->nd心);
-	TRACE("GameDebug:气=%d\r\n", roleData->nd气);
-	TRACE("GameDebug:体=%d\r\n", roleData->nd体);
-	TRACE("GameDebug:魄=%d\r\n", roleData->nd魄);
+	TRACE("GameData:心=%d\r\n", roleData->nd心);
+	TRACE("GameData:气=%d\r\n", roleData->nd气);
+	TRACE("GameData:体=%d\r\n", roleData->nd体);
+	TRACE("GameData:魄=%d\r\n", roleData->nd魄);
 
-	TRACE("GameDebug:攻击力=%d\r\n", roleData->nd攻击力);
-	TRACE("GameDebug:防御力=%d\r\n", roleData->nd防御力);
-	TRACE("GameDebug:命中率=%d\r\n", roleData->nd命中率);
-	TRACE("GameDebug:回避率=%d\r\n", roleData->nd回避率);
+	TRACE("GameData:攻击力=%d\r\n", roleData->nd攻击力);
+	TRACE("GameData:防御力=%d\r\n", roleData->nd防御力);
+	TRACE("GameData:命中率=%d\r\n", roleData->nd命中率);
+	TRACE("GameData:回避率=%d\r\n", roleData->nd回避率);
 
-	TRACE("GameDebug:金币=%d\r\n", roleData->nqMoney);
-	TRACE("GameDebug:负重=%d | %d\r\n", roleData->nw负重, roleData->nwMax负重);
+	TRACE("GameData:金币=%d\r\n", roleData->nqMoney);
+	TRACE("GameData:负重=%d | %d\r\n", roleData->nw负重, roleData->nwMax负重);
 
-	TRACE("GameDebug:剩余气功点数=%d\r\n", roleData->ndPoint气功);
+	TRACE("GameData:剩余气功点数=%d\r\n", roleData->ndPoint气功);
 
 	//测试背包
-	TBACK_PACK_LIST_OBJ tGoodList;
-	tGoodList.getData();//初始化
+	//TBACK_PACK_LIST_OBJ tGoodList;
+	//tGoodList.getData();//初始化
 	//TBACK_PACK_LIST* bagData = tGoodList.getData();
-	for(int i = 0; i < nBackPackSize; i++){
-		if(tGoodList.mtGoodList[i].ndGoodNum == 0){
-			continue;
-		}
-		TRACE("GameDebug:第%d格，%s(%d):%s\r\n", i+1,\
-			tGoodList.getData()->mtGoodList[i].szpGoodName,\
-			tGoodList.getData()->mtGoodList[i].ndGoodNum,\
-			tGoodList.getData()->mtGoodList[i].szpGoodDesc);
-	}
+	//for(int i = 0; i < nBackPackSize; i++){
+	//	if(tGoodList.mtGoodList[i].ndGoodNum == 0){
+	//		continue;
+	//	}
+	//	TRACE("GameData:第%d格，%s(%d):%s\r\n", i+1,\
+	//		tGoodList.getData()->mtGoodList[i].szpGoodName,\
+	//		tGoodList.getData()->mtGoodList[i].ndGoodNum,\
+	//		tGoodList.getData()->mtGoodList[i].szpGoodDesc);
+	//}
 
 	//BOOL bFlag = tGoodList.useGoodForIndex("金创药(小)");
 	////int xy = tGoodList.getGoodIndexByName("金创药(小)");
 	//if(bFlag){
-	//	TRACE("GameDebug:使用[金创药(小)]成功！\r\n");
+	//	TRACE("GameData:使用[金创药(小)]成功！\r\n");
 	//}
 
 	//g_tRoleObj.getData()->findWay(-250, 1180);
-	msgFindWay(-200, 900);
+	//msgFindWay(-200, 900);
 }
 
 

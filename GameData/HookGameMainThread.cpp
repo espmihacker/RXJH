@@ -42,9 +42,10 @@ LRESULT CALLBACK GameWndProc(
 			case MSG_TEST:
 				//g_tMonsterListObj.getData()->dbgPrintMsg();
 				
-				//DbgPrintfMine("X=%d Y=%d",g_tRoleObj.getData()->flCurX,g_tRoleObj.getData()->flCurY);
+				//DbgPrintfMine("X=%f Y=%f",g_tRoleObj.getData()->flCurX,g_tRoleObj.getData()->flCurY);
 
-				//TACTION_LIST_OBJ g_tActionListObj;
+				//g_tMonsterListObj.getData()->dbgPrintMsg();
+
 				//g_tActionListObj.getData()->dbgPrintMsg();
 				//g_tActionListObj.UseAction(1);
 				//g_tActionListObj.UseAction("运气调息");
@@ -60,7 +61,7 @@ LRESULT CALLBACK GameWndProc(
 				//放置技能
 				//g_tSkillList.getData()->dropSkillF1F10("魔龙斩", 2);
 
-				//g_tF1_F10List.getData()->useSkillByName("魔龙斩");
+				g_tF1_F10List.getData()->useSkillByName("魔龙斩");
 
 				//修炼技能
 				//g_tSkillList.getData()->practiceSkill("猛龙破天");
@@ -70,8 +71,9 @@ LRESULT CALLBACK GameWndProc(
 				//	g_tSkillList.getData()->isCanStudy(i);
 				//}
 				//
-				g_tBackPackListObj.getData()->selectGoods(1);
-				g_tBackPackListObj.getData()->moveGoodToDepot(1);
+
+				//g_tBackPackListObj.getData()->selectGoods(1);
+				//g_tBackPackListObj.getData()->moveGoodToDepot(1);
 				break;
 			}
 			return 1;
