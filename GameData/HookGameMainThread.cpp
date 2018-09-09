@@ -61,7 +61,8 @@ LRESULT CALLBACK GameWndProc(
 				//放置技能
 				//g_tSkillList.getData()->dropSkillF1F10("魔龙斩", 2);
 
-				g_tF1_F10List.getData()->useSkillByName("魔龙斩");
+				//使用技能
+				//g_tF1_F10List.getData()->useSkillByName("魔龙斩");
 
 				//修炼技能
 				//g_tSkillList.getData()->practiceSkill("猛龙破天");
@@ -74,6 +75,13 @@ LRESULT CALLBACK GameWndProc(
 
 				//g_tBackPackListObj.getData()->selectGoods(1);
 				//g_tBackPackListObj.getData()->moveGoodToDepot(1);
+
+				//测试更换装备
+				//g_tBackPackListObj.getData()->selectGoods(0);
+				//g_tBackPackListObj.getData()->moveGoodToEquip(g_tBackPackListObj.ndHandguardL);
+				//-
+				g_tBackPackListObj.getData()->moveGoodToEquipHandguardL(g_tBackPackListObj.ndHandguardL, "皮护手");
+
 				break;
 			}
 			return 1;

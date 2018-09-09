@@ -29,4 +29,5 @@ public:
 
 	CPageMainTab m_PageMainTab;
 	virtual BOOL OnInitDialog();
+	afx_msg void OnClose();
 };

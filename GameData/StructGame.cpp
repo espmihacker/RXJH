@@ -93,6 +93,7 @@ TBACK_PACK_LIST_OBJ* TBACK_PACK_LIST_OBJ::getData(){
 		DWORD ndBase = *(DWORD*)Base_BackpackList;
 		DWORD ndFirstGoodBase = ndBase + 0x434;
 		DWORD ndObj = NULL;
+		memset(mtGoodList, 0, sizeof(mtGoodList));
 		for(int i = 0; i < nBackPackSize; i++) {
 			ndObj = *(DWORD*)(ndFirstGoodBase + 4 * i);//取出第i格对象的地址
 			if(ndObj == NULL){
@@ -208,7 +209,7 @@ DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex){//选中背包中的某一格
 		__asm{
 			mov ebx,ndIndex
 			mov edi,dword ptr ds:[Base_BackpackList]//背包/仓库基址
-			MOV     EAX,DWORD PTR DS:[EDI+EBX*4+0x410]
+			MOV     EAX,DWORD PTR DS:[EDI+EBX*4+0x434]
 			mov		ndObj,eax			//取出对象
 			MOV     ECX,DWORD PTR DS:[Base_SelectGoodAndSkill]
 			MOV     DWORD PTR DS:[ECX+0x228],EAX
@@ -227,12 +228,12 @@ DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex){//选中背包中的某一格
 	}
 }
 BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex){//移动选中的物品到仓库
-	try
+	__try
 	{
 		__asm{
 			mov edi,dword ptr ds:[Base_DepotList]
-			mov edx,dword ptr ds:[edi+0x1608]
-			mov eax,dword ptr ds:[edi+0x1c10]
+			mov edx,dword ptr ds:[edi+0x162c]
+			mov eax,dword ptr ds:[edi+0x1c58]
 			mov ecx,ndIndex
 			push ndIndex
 				push edx
@@ -243,11 +244,50 @@ BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex){//移动选中的物品到仓库
 		}
 		return TRUE;
 	}
-	catch (...)
+	__except (1)
 	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex) 错误");
 		return FALSE;
 	}
 	
+}
+
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex){
+	__try
+	{
+		__asm{
+			mov edi,dword ptr ds:[Base_EquipList]
+			mov edx,dword ptr ds:[edi+0x162c]
+			mov eax,dword ptr ds:[edi+0x1c58]
+			mov ecx,ndIndex
+				push ndIndex
+				push edx
+				push eax
+				mov ecx,edi
+				mov eax,BaseCall_MoveGoods
+				call eax
+		}
+		return TRUE;
+	}
+	__except (1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex) 错误");
+		return FALSE;
+	}
+}
+
+//更换装备
+//参数1 - 装备位置
+//参数2 - 装备名称
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquipHandguardL(int niType, char* szpEquipName){//更换左护手
+	//取得装备在背包里的下标
+	int ndIndex = getGoodIndexByName(szpEquipName);
+	if(ndIndex < 0){
+		return FALSE;
+	}
+	selectGoods(ndIndex);
+	BOOL result = moveGoodToEquip(niType);//更换装备
+	return result;
 }
 
 //--------------------------------------怪物相关代码--------------------------------------------------
@@ -563,7 +603,7 @@ BOOL TROLE_OBJ::findWay(int niX, int niY){
 			CALL    EDX
 			add esp,34
 		}
-
+		DbgPrintfMine("TROLE_OBJ::findWay");
 		return TRUE;
 	}catch(...){
 		DbgPrintfMine("TROLE_OBJ::findWay(int niX, int niY) 错误");
@@ -715,7 +755,7 @@ BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex){
 		if(!TSKILL_LIST_OBJ::isCanStudy(ndIndex)){//技能无法学习，不满足条件！
 			return FALSE;
 		}
-		DWORD ndObj = *(DWORD*)Base_SkillList + 0x410;
+		DWORD ndObj = *(DWORD*)Base_SkillList + 0x434;
 		ndObj = ((DWORD*)ndObj)[ndIndex];//这句较难理解,可拆分如下：
 /**************************************************************
 		DWORD *ndPObj = (DWORD*)ndObj;
@@ -728,7 +768,7 @@ BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex){
 			mov eax,dword ptr ds:[edx+0x4c]
 				push ecx
 				push eax
-				sub esp,0x150
+				sub esp,0x150//构造的缓冲区
 				lea ecx,[esp]
 				push ecx
 				mov ecx,dword ptr ds:[Base_PracticeSkillArg2]

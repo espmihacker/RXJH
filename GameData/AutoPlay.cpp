@@ -21,7 +21,7 @@ CAutoPlay::CAutoPlay(void)
 CAutoPlay::~CAutoPlay(void)
 {
 	//清理的工作
-	TerminateThread(hT_AutoAttackPick, 1);
+	TerminateThread(hT_AutoAttackPick, 1);//强制关闭线程
 }
 
 //__thiscall

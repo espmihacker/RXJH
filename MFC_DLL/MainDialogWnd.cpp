@@ -31,6 +31,7 @@ void CMainDialogWnd::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CMainDialogWnd, CDialogEx)
+	ON_WM_CLOSE()//关闭窗体消息
 	ON_BN_CLICKED(IDC_BTN_TEST, &CMainDialogWnd::OnBnClickedBtnTest)
 	ON_BN_CLICKED(IDC_BUTTON2, &CMainDialogWnd::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CMainDialogWnd::OnBnClickedButton3)
@@ -41,6 +42,13 @@ END_MESSAGE_MAP()
 
 
 // CMainDialogWnd 消息处理程序
+
+void CMainDialogWnd::OnClose()
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	unHookMainThread();//卸载消息
+	CDialogEx::OnClose();
+}
 
 void CMainDialogWnd::OnBnClickedBtnTest()
 {
@@ -80,18 +88,15 @@ void CMainDialogWnd::OnBnClickedBtnTest()
 	TRACE("GameData:剩余气功点数=%d\r\n", roleData->ndPoint气功);
 
 	//测试背包
-	//TBACK_PACK_LIST_OBJ tGoodList;
-	//tGoodList.getData();//初始化
-	//TBACK_PACK_LIST* bagData = tGoodList.getData();
-	//for(int i = 0; i < nBackPackSize; i++){
-	//	if(tGoodList.mtGoodList[i].ndGoodNum == 0){
-	//		continue;
-	//	}
-	//	TRACE("GameData:第%d格，%s(%d):%s\r\n", i+1,\
-	//		tGoodList.getData()->mtGoodList[i].szpGoodName,\
-	//		tGoodList.getData()->mtGoodList[i].ndGoodNum,\
-	//		tGoodList.getData()->mtGoodList[i].szpGoodDesc);
-	//}
+	for(int i = 0; i < nBackPackSize; i++){
+		if(g_tBackPackListObj.getData()->mtGoodList[i].ndGoodNum == 0){
+			continue;
+		}
+		TRACE("GameData:第%d格，%s(%d):%s\r\n", i+1,\
+			g_tBackPackListObj.getData()->mtGoodList[i].szpGoodName,\
+			g_tBackPackListObj.getData()->mtGoodList[i].ndGoodNum,\
+			g_tBackPackListObj.getData()->mtGoodList[i].szpGoodDesc);
+	}
 
 	//BOOL bFlag = tGoodList.useGoodForIndex("金创药(小)");
 	////int xy = tGoodList.getGoodIndexByName("金创药(小)");
@@ -100,7 +105,7 @@ void CMainDialogWnd::OnBnClickedBtnTest()
 	//}
 
 	//g_tRoleObj.getData()->findWay(-250, 1180);
-	//msgFindWay(-200, 900);
+	msgFindWay(-200, 900);
 }
 
 

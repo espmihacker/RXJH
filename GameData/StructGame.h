@@ -85,6 +85,18 @@ typedef struct TBACK_PACK_OBJ{//背包物品对象
 //背包结构
 #define nBackPackSize 36
 typedef struct TBACK_PACK_LIST_OBJ{//背包对象
+
+	enum EquipType{
+		ndClothes,
+		ndHandguardL,ndHandguardR,
+		ndArm,
+		ndShoe,
+		ndShell,
+		ndNecklace,
+		ndEarringL,ndEarringR,
+		ndRingL,ndRingR
+	};
+
 	TBACK_PACK_OBJ mtGoodList[nBackPackSize];
 
 	TBACK_PACK_LIST_OBJ* getData();
@@ -93,6 +105,8 @@ typedef struct TBACK_PACK_LIST_OBJ{//背包对象
 	BOOL useGoodByIndex(char* szpGoodName);//根据物品名使用背包物品
 	DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex);//选中背包中的某一格
 	BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex = 1);//移动选中的物品到仓库
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex = 1);//移动物品到装备，更换装备
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquipHandguardL(int niType, char* szpEquipName);//更换左护手
 }_TBACK_PACK_LIST_OBJ;
 
 //怪物结构
