@@ -102,8 +102,11 @@ TBACK_PACK_LIST_OBJ* TBACK_PACK_LIST_OBJ::getData(){
 				this->mtGoodList[i].szpGoodDesc = NULL;
 				continue;
 			}
+			this->mtGoodList[i].ndId1 = *(DWORD*)(ndObj + 0x4c);//取出物品ID1
+			this->mtGoodList[i].nqId2 = *(QWORD*)(ndObj + 0x54);//取出物品ID2
 			this->mtGoodList[i].szpGoodName = (char*)(ndObj + 0x05c);//取出物品名称
 			this->mtGoodList[i].szpGoodDesc = (char*)(ndObj + 0x0f1);//取出物品描述
+			this->mtGoodList[i].nbIndexForBackpack = *(BYTE*)(ndObj + 0x1f4);//取出物品描述
 			this->mtGoodList[i].ndGoodNum = *(DWORD*)(ndObj + 0xc44);//取出物品数量
 		}
 	}
@@ -316,6 +319,9 @@ TMONSTER_LIST_OBJ* TMONSTER_LIST_OBJ::getData(){
 			tMonsterList[i].flCurX = *(float*)(ndObj + 0x1060);
 			tMonsterList[i].flCurY = *(float*)(ndObj + 0x1068);
 			tMonsterList[i].ndIndexByAllObj = *(DWORD*)(ndObj + 0xc);//对象数组下标
+			tMonsterList[i].ndObjAddr = ndObj;//对象的地址
+
+			//计算距离
 			tMonsterList[i].ndDistance = play2PointDistance(
 				g_tRoleObj.getData()->flCurX,
 				g_tRoleObj.getData()->flCurY,
@@ -352,6 +358,20 @@ BOOL TMONSTER_LIST_OBJ::dbgPrintMsg(){
 	
 	return TRUE;
 }
+
+DWORD TMONSTER_LIST_OBJ::GetNpcObjByName(char* szpNpcName){
+	for(int i = 0; i < 100; i++){
+		if(tMonsterList[i].szpName == NULL){
+			continue;
+		}
+		if(strcmp(szpNpcName, tMonsterList[i].szpName) == 0){
+			return tMonsterList[i].ndObjAddr;
+		}
+	}
+	return NULL;
+}
+
+//--------------------------------------动作相关代码--------------------------------------------------
 
 //+0c//总的对象数组下标
 //+08//分类编号
@@ -490,6 +510,18 @@ NEXTLABLE:
 	return TRUE;
 }
 
+BOOL TROLE_OBJ::selectNpcByName(char* szpNpcName){
+	for(int i = 0; i < 100; i++){
+		TMONSTER_OBJ tempObj = g_tMonsterListObj.getData()->tMonsterList[i];
+		if(strcmp(tempObj.szpName, szpNpcName) && tempObj.szpName != NULL){
+			selectObj(tempObj.ndIndexByAllObj);
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 //选择最近的怪物
 BOOL TROLE_OBJ::selectMonsterByNear(){
 	DWORD ndIndex = 0xFFFF;
@@ -603,7 +635,7 @@ BOOL TROLE_OBJ::findWay(int niX, int niY){
 			CALL    EDX
 			add esp,34
 		}
-		DbgPrintfMine("TROLE_OBJ::findWay");
+		//DbgPrintfMine("TROLE_OBJ::findWay");
 		return TRUE;
 	}catch(...){
 		DbgPrintfMine("TROLE_OBJ::findWay(int niX, int niY) 错误");
@@ -611,6 +643,56 @@ BOOL TROLE_OBJ::findWay(int niX, int niY){
 	}
 }
 
+//打开NPC对话框
+BOOL TROLE_OBJ::OpenNpcByNpcName(char* szpNpcName){
+	DWORD ndNpcAddr = NULL;
+	ndNpcAddr = g_tMonsterListObj.getData()->GetNpcObjByName(szpNpcName);
+
+	if(!ndNpcAddr){
+		DbgPrintfMine("NPC地址为空");
+		return FALSE;
+	}
+	
+	__try{
+		//首先选中一个对象，避免空指针异常
+		//g_tRoleObj.getData()->selectObj(*(DWORD*)(ndNpcAddr + 0xc));
+		g_tRoleObj.getData()->selectNpcByName(szpNpcName);
+
+		__asm{
+				push 0
+				push 0
+				push 0x401
+				mov ecx,ndNpcAddr //NPC对象地址
+				mov eax,[ecx]
+				mov eax,[eax+0x4]
+				call eax
+		}
+		return TRUE;
+	}__except(1){
+		DbgPrintfMine("TROLE_OBJ::OpenNpcByNpcId(DWORD ndNpcId) 错误");
+		return FALSE;
+	}
+}
+
+//打开仓库
+BOOL TROLE_OBJ::OpenDepot(void){
+	__try{
+		__asm{
+			push 5	//固定为5
+			mov ecx,Base_F1_F10Arg
+			mov ecx,[ecx]
+			mov ecx,[ecx+0x2e0]
+			mov ecx,[ecx+0x33c]
+			mov ecx,[ecx+0x4]
+			mov eax,BaseCALL_OpenDepot
+			call eax
+		}
+		return TRUE;
+	}__except(1){
+		DbgPrintfMine("TROLE_OBJ::OpenDepot(void) 错误");
+		return FALSE;
+	}
+}
 //--------------------------------------技能列表代码--------------------------------------------------
 
 TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){

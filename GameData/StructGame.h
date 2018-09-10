@@ -74,8 +74,14 @@ typedef struct TROLE_PROPERTY{ //人物属性结构
 }_TROLE_PROPERTY;
 
 typedef struct TBACK_PACK_OBJ{//背包物品对象
+	//+4C	//ID1
+	DWORD ndId1;
+	//+54	//ID2
+	QWORD nqId2;
 	//+5C	//物品名称
 	char* szpGoodName;
+	//+1F4	//物品位置0...
+	BYTE nbIndexForBackpack;
 	//+F1	//物品描述
 	char* szpGoodDesc;
 	//+C44	//物品数量
@@ -125,6 +131,8 @@ typedef struct TMONSTER_OBJ{
 	float flCurX;
 	//+1068	//坐标2
 	float flCurY;
+
+	DWORD ndObjAddr;//对象的地址
 	DWORD ndDistance;//距离玩家
 }_TMONSTER_OBJ;
 
@@ -133,6 +141,7 @@ typedef struct TMONSTER_LIST_OBJ{
 
 	TMONSTER_LIST_OBJ* getData();
 	BOOL TMONSTER_LIST_OBJ::dbgPrintMsg();
+	DWORD TMONSTER_LIST_OBJ::GetNpcObjByName(char* szpNpcName);
 }_TMONSTER_LIST_OBJ;
 
 //人物动作
@@ -163,11 +172,14 @@ typedef struct TROLE_OBJ{
 
 	TROLE_OBJ* TROLE_OBJ::getData();
 	BOOL TROLE_OBJ::selectObj(DWORD ndIndexByObj);
+	BOOL TROLE_OBJ::selectNpcByName(char* szpNpcName);
 	BOOL TROLE_OBJ::selectMonsterByNear();//选择最近的怪物
 	BOOL TROLE_OBJ::autoAttackMonster();//自动打怪
 	BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName);//使用技能自动打怪
 	DWORD TROLE_OBJ::getSelectObjType();//返回选择的类型 obj+0x8=0x2E
 	BOOL TROLE_OBJ::findWay(int niX, int niY);//自动寻路
+	BOOL TROLE_OBJ::OpenNpcByNpcName(char* szpNpcName);//打开NPC对话框
+	BOOL TROLE_OBJ::OpenDepot(void);//打开仓库
 }_TROLE_OBJ;
 
 typedef struct  TSKILL_OBJ{
@@ -209,7 +221,8 @@ typedef struct TF1_F10_OBJ{
 
 }_TF1_F10_OBJ;
 
-typedef struct TF1_F10_LIST_OBJ{
+typedef struct TF1_F10_LIST_OBJ
+{
 	TF1_F10_OBJ tF1F10List[F1F10Size];
 
 	TF1_F10_LIST_OBJ* TF1_F10_LIST_OBJ::getData();
@@ -218,5 +231,37 @@ typedef struct TF1_F10_LIST_OBJ{
 	int TF1_F10_LIST_OBJ::getEmptyIndex(void);
 	BOOL TF1_F10_LIST_OBJ::useSkillByName(char* szpSkillName);
 }_TF1_F10_LIST_OBJ;
+
+#pragma pack(1)
+typedef struct TSAVE_DEPOT_DATA
+{
+	BYTE nb1[0x12];	//未知数据
+	//+12		4字节 来源于物品对象+0x4C
+	DWORD ndId1_A;//0x16
+
+	BYTE nb2[4];
+	//+1A		//2字节 物品数量
+	WORD nwGoodSaveNum;//0x1C
+
+	BYTE nb3[0xE];
+	//+2A		//8字节 来源于物品对象+0x54
+	QWORD nqId2;
+
+	//+32		4字节 来源于物品对象+0x4C
+	DWORD ndId1_B;
+
+	BYTE nb4[4];
+	//+3A		//2字节 物品数量上限，来源于物品对象+0x0c44
+	WORD nwCurGoodNum;//3C
+
+	BYTE nb5[7];
+	//+43		//1字节 物品在背包里的下标，来源于物品对象+1f4
+	BYTE nbIndexForBackpack;
+
+	//其他数据
+	BYTE nb6[0x4c];//0x90
+
+}_TSAVE_DEPOT_DATA,*PTSAVE_DEPOT_DATA;
+#pragma pack()
 
 #endif

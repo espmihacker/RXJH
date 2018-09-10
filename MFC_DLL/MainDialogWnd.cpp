@@ -98,6 +98,9 @@ void CMainDialogWnd::OnBnClickedBtnTest()
 			g_tBackPackListObj.getData()->mtGoodList[i].szpGoodDesc);
 	}
 
+	//测试打开仓库
+	g_tRoleObj.getData()->OpenDepot();
+
 	//BOOL bFlag = tGoodList.useGoodForIndex("金创药(小)");
 	////int xy = tGoodList.getGoodIndexByName("金创药(小)");
 	//if(bFlag){
@@ -105,7 +108,7 @@ void CMainDialogWnd::OnBnClickedBtnTest()
 	//}
 
 	//g_tRoleObj.getData()->findWay(-250, 1180);
-	msgFindWay(-200, 900);
+	//msgFindWay(-200, 900);
 }
 
 
