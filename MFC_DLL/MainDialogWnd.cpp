@@ -88,7 +88,7 @@ void CMainDialogWnd::OnBnClickedBtnTest()
 	TRACE("GameData:剩余气功点数=%d\r\n", roleData->ndPoint气功);
 
 	//测试背包
-	for(int i = 0; i < nBackPackSize; i++){
+	for(int i = 0; i < nDepotListSize; i++){
 		if(g_tBackPackListObj.getData()->mtGoodList[i].ndGoodNum == 0){
 			continue;
 		}

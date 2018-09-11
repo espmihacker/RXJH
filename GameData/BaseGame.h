@@ -16,6 +16,7 @@
 #define Base_DropSkillArg 0x02DF9FC8		//放置技能call参数
 #define Base_F1_F10Arg 0x11B08F8			//快捷栏参数 +280
 #define Base_PracticeSkillArg1 0x2BD3964	//修炼技能参数1
+#define Base_SendDataArg 0x117F3A0			//发包CALL参数
 
 //不用更新
 #define Base_PracticeSkillArg2 Base_RoleObj	//修炼技能参数2，就是玩家角色基址
@@ -30,7 +31,8 @@
 #define BaseCall_PracticeSkill 0x00543760		//修炼技能CALL
 #define BaseCall_MoveGoods 0x008291B0			//移动物品CALL
 #define BaseCall_OpenNpc 0x007B8840				//打开NPC对话CALL
-#define BaseCALL_OpenDepot 0x007B5BD0			//打开仓库CALL
+#define BaseCall_OpenDepot 0x007B5BD0			//打开仓库CALL
+#define BaseCall_SendData 0x004E8800			//发包CALL
 
 //OFFSET
 #define Offset_ObjType		0x8			//对象类型偏移

@@ -112,8 +112,20 @@ typedef struct TBACK_PACK_LIST_OBJ{//背包对象
 	DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex);//选中背包中的某一格
 	BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex = 1);//移动选中的物品到仓库
 	BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex = 1);//移动物品到装备，更换装备
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum);
 	BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquipHandguardL(int niType, char* szpEquipName);//更换左护手
 }_TBACK_PACK_LIST_OBJ;
+
+//仓库结构
+#define nDepotListSize 60
+typedef struct TDEPOT_LIST_OBJ
+{
+	TBACK_PACK_OBJ mtGoodList[nDepotListSize];
+
+	TDEPOT_LIST_OBJ* TDEPOT_LIST_OBJ::GetData();
+	int TDEPOT_LIST_OBJ::GetGoodIndexByName(char* szpGoodName);
+	BOOL TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum);//从仓库中取出物品
+}_TDEPOT_LIST_OBJ;
 
 //怪物结构
 typedef struct TMONSTER_OBJ{
@@ -235,7 +247,11 @@ typedef struct TF1_F10_LIST_OBJ
 #pragma pack(1)
 typedef struct TSAVE_DEPOT_DATA
 {
-	BYTE nb1[0x12];	//未知数据
+	BYTE nb1[0x0A];
+	DWORD ndCmd;	//4字节 操作分类：3-存 5-取
+
+	BYTE nb9[4];
+
 	//+12		4字节 来源于物品对象+0x4C
 	DWORD ndId1_A;//0x16
 

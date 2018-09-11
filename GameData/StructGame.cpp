@@ -8,6 +8,7 @@
 TROLE_PROPERTY g_tRoleProperty;
 TACTION_LIST_OBJ g_tActionListObj;		//动作结构列表对象
 TBACK_PACK_LIST_OBJ g_tBackPackListObj;	//背包结构列表对象
+TDEPOT_LIST_OBJ g_tDepotListObj;		//仓库结构列表对象
 TMONSTER_LIST_OBJ g_tMonsterListObj;	//怪物结构列表对象
 TROLE_OBJ g_tRoleObj;					//玩家结构对象
 TSKILL_LIST_OBJ g_tSkillList;			//技能数组
@@ -279,6 +280,76 @@ BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex){
 	}
 }
 
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum)
+{
+	int niIndex = getGoodIndexByName(szpGoodName);
+	//定义缓冲区
+	BYTE nbData[0x90] = {
+		0x00,0x00,0x94,0x00,0x8C,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0x00,0xF1,0xF1,
+		0xF1,0x00,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0xDA,0x19,0x00,0x00,0x00,0x00,0x00,0x00,0x1B,0xD0,0xD1,0x1A,0x2A,0x05,
+		0x7D,0x0C,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x07,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x00,0xB6,0x80,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xCA,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x76,0xC1,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0xD2,0x80,0x38,0x79,0xD0,0x80,0x35,0x6F,0xC1,0x80,0x38,0x70
+	};
+	if(niIndex == -1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum) ERROR -1");
+		return FALSE;
+	}
+
+	PTSAVE_DEPOT_DATA pSavaData = (PTSAVE_DEPOT_DATA)nbData;
+
+	//pSavaData->ndCmd = 3;	//操作分类
+	pSavaData->ndId1_A = mtGoodList[niIndex].ndId1; //+4C
+	pSavaData->ndId1_B = pSavaData->ndId1_A;
+	pSavaData->nqId2 = mtGoodList[niIndex].nqId2; //+54
+	pSavaData->nwGoodSaveNum = ndGoodNum;
+	pSavaData->nwCurGoodNum =  mtGoodList[niIndex].ndGoodNum;
+	pSavaData->nbIndexForBackpack =  mtGoodList[niIndex].nbIndexForBackpack;
+
+	__try
+	{
+		__asm
+		{
+			mov ecx,pSavaData
+			lea ecx,nbData
+			/*
+			//-------------------------------------//
+			//物品ID相关1
+			mov dword ptr ss:[ecx+0x12],0x3B9ACA65
+			mov dword ptr ss:[ecx+0x32],0x3B9ACA65
+			//数量
+			mov word ptr ss:[ecx+0x1A],1
+			//物品ID相关2
+			mov dword ptr ss:[ecx+0x2A],0xC2AB21A3
+			mov dword ptr ss:[ecx+0x2A+4],0x0C7D052D
+			//
+			//物品数量
+			mov word ptr ss:[ecx+0x3A],0x4
+			//物品在背包中的下标
+			mov BYTE ptr ss:[ecx+0x43],0x0
+			//--------------------------------------//
+			*/
+			push 0x8E
+			push ecx
+			mov ecx,dword ptr ds:[Base_SendDataArg]
+			mov eax,BaseCall_SendData
+			call eax
+		}
+		//DbgPrintfMine("测试存放N个物品到仓库");
+		return TRUE;
+	}
+	__except(1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum)");
+		return FALSE;
+	}
+}
+
 //更换装备
 //参数1 - 装备位置
 //参数2 - 装备名称
@@ -292,6 +363,133 @@ BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquipHandguardL(int niType, char* szpEquipNa
 	BOOL result = moveGoodToEquip(niType);//更换装备
 	return result;
 }
+
+//--------------------------------------仓库相关代码--------------------------------------------------
+TDEPOT_LIST_OBJ* TDEPOT_LIST_OBJ::GetData()
+{
+	__try
+	{
+		DWORD ndBase = *(DWORD*)Base_DepotList;
+		DWORD ndFirstGoodBase = ndBase + 0x434;
+		DWORD ndObj = NULL;
+		memset(mtGoodList, 0, sizeof(mtGoodList));
+		for(int i = 0; i < nDepotListSize; i++) {
+			ndObj = *(DWORD*)(ndFirstGoodBase + 4 * i);//取出第i格对象的地址
+			if(ndObj == NULL){
+				this->mtGoodList[i].ndGoodNum = 0;
+				this->mtGoodList[i].szpGoodName = NULL;
+				this->mtGoodList[i].szpGoodDesc = NULL;
+				continue;
+			}
+			this->mtGoodList[i].ndId1 = *(DWORD*)(ndObj + 0x4c);//取出物品ID1
+			this->mtGoodList[i].nqId2 = *(QWORD*)(ndObj + 0x54);//取出物品ID2
+			this->mtGoodList[i].szpGoodName = (char*)(ndObj + 0x05c);//取出物品名称
+			this->mtGoodList[i].szpGoodDesc = (char*)(ndObj + 0x0f1);//取出物品描述
+			this->mtGoodList[i].nbIndexForBackpack = *(BYTE*)(ndObj + 0x1f4);//取出物品描述
+			this->mtGoodList[i].ndGoodNum = *(DWORD*)(ndObj + 0xc44);//取出物品数量
+		}
+	}
+	__except(1)
+	{
+		DbgPrintfMine("初始化仓库信息异常");
+		return FALSE;
+	}
+	return this;
+}
+
+int TDEPOT_LIST_OBJ::GetGoodIndexByName(char* szpGoodName)
+{
+	//初始化结构
+	this->GetData();
+	//遍历背包
+	int i;
+	for (i = 0; i < nDepotListSize; i++)
+	{
+		//比较背包物品名字
+		if(this->mtGoodList[i].szpGoodName != NULL && m_strcmp(szpGoodName, this->mtGoodList[i].szpGoodName) == 0){
+			return i;
+		}
+	}
+	return -1;
+}
+
+BOOL TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum)
+{
+	int niIndex = GetGoodIndexByName(szpGoodName);
+	//定义缓冲区
+	BYTE nbData[0x90] = {
+		0x00,0x00,0x94,0x00,0x8C,0x00,0x01,0x00,0x00,0x00,0x05,0x00,0x00,0x00,0xF1,0xF1,
+		0xF1,0x00,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0xDA,0x19,0x00,0x00,0x00,0x00,0x00,0x00,0x1B,0xD0,0xD1,0x1A,0x2A,0x05,
+		0x7D,0x0C,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x07,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x00,0xB6,0x80,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xCA,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x76,0xC1,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0xD2,0x80,0x38,0x79,0xD0,0x80,0x35,0x6F,0xC1,0x80,0x38,0x70
+	};
+	if(niIndex == -1)
+	{
+		DbgPrintfMine("TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum) ERROR -1");
+		return FALSE;
+	}
+
+	PTSAVE_DEPOT_DATA pSavaData = (PTSAVE_DEPOT_DATA)nbData;
+
+	//判断取出的数量是否大于仓库中的数量
+	if(ndGoodNum > mtGoodList[niIndex].ndGoodNum)
+	{
+		DbgPrintfMine("取出物品的数量不足，请查看输入的数量！")
+			return FALSE；
+	}
+
+	pSavaData->ndCmd = 5;		//操作分类
+	pSavaData->ndId1_A = mtGoodList[niIndex].ndId1; //+4C
+	pSavaData->ndId1_B = pSavaData->ndId1_A;
+	pSavaData->nqId2 = mtGoodList[niIndex].nqId2; //+54
+	pSavaData->nwGoodSaveNum = ndGoodNum;
+	pSavaData->nwCurGoodNum =  mtGoodList[niIndex].ndGoodNum;
+	pSavaData->nbIndexForBackpack =  mtGoodList[niIndex].nbIndexForBackpack;
+
+	__try
+	{
+		__asm
+		{
+			mov ecx,pSavaData
+			lea ecx,nbData
+			/*
+			//-------------------------------------//
+			//物品ID相关1
+			mov dword ptr ss:[ecx+0x12],0x3B9ACA65
+			mov dword ptr ss:[ecx+0x32],0x3B9ACA65
+			//数量
+			mov word ptr ss:[ecx+0x1A],1
+			//物品ID相关2
+			mov dword ptr ss:[ecx+0x2A],0xC2AB21A3
+			mov dword ptr ss:[ecx+0x2A+4],0x0C7D052D
+			//
+			//物品数量
+			mov word ptr ss:[ecx+0x3A],0x4
+			//物品在背包中的下标
+			mov BYTE ptr ss:[ecx+0x43],0x0
+			//--------------------------------------//
+			*/
+			push 0x8E
+			push ecx
+			mov ecx,dword ptr ds:[Base_SendDataArg]
+			mov eax,BaseCall_SendData
+			call eax
+		}
+		//DbgPrintfMine("测试存放N个物品到仓库");
+		return TRUE;
+	}
+	__except(1)
+	{
+		DbgPrintfMine("TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum) 错误");
+		return FALSE;
+	}
+}
+
 
 //--------------------------------------怪物相关代码--------------------------------------------------
 
@@ -684,7 +882,7 @@ BOOL TROLE_OBJ::OpenDepot(void){
 			mov ecx,[ecx+0x2e0]
 			mov ecx,[ecx+0x33c]
 			mov ecx,[ecx+0x4]
-			mov eax,BaseCALL_OpenDepot
+			mov eax,BaseCall_OpenDepot
 			call eax
 		}
 		return TRUE;
