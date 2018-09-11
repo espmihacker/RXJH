@@ -12,6 +12,7 @@ LRESULT CALLBACK GameWndProc(
 	_In_ LPARAM lParam
 	){
 	CWPSTRUCT *lpArg = (CWPSTRUCT*)lParam;
+
 	if(nCode == HC_ACTION){
 		if(lpArg->hwnd == getGameWndHandle() && MyMsgCode){
 			//DbgPrintfMine("消息传到  %d\r\n", lpArg->lParam);
@@ -33,12 +34,19 @@ LRESULT CALLBACK GameWndProc(
 				//char* szpSkillName = ((char*)lpArg->lParam);
 				g_tRoleObj.getData()->autoAttackMonsterBySkill((char*)lpArg->lParam);
 				break;
+			case MSG_FINDWAY:
+				{
+					int *niXY = (int*)lpArg->lParam;
+					g_tRoleObj.getData()->findWay(niXY[0], niXY[1]);
+				}
+				break;
 			case MSG_TEST:
 				//g_tMonsterListObj.getData()->dbgPrintMsg();
 				
-				//DbgPrintfMine("X=%d Y=%d",g_tRoleObj.getData()->flCurX,g_tRoleObj.getData()->flCurY);
+				//DbgPrintfMine("X=%f Y=%f",g_tRoleObj.getData()->flCurX,g_tRoleObj.getData()->flCurY);
 
-				//TACTION_LIST_OBJ g_tActionListObj;
+				//g_tMonsterListObj.getData()->dbgPrintMsg();
+
 				//g_tActionListObj.getData()->dbgPrintMsg();
 				//g_tActionListObj.UseAction(1);
 				//g_tActionListObj.UseAction("运气调息");
@@ -54,16 +62,39 @@ LRESULT CALLBACK GameWndProc(
 				//放置技能
 				//g_tSkillList.getData()->dropSkillF1F10("魔龙斩", 2);
 
+				//使用技能
 				//g_tF1_F10List.getData()->useSkillByName("魔龙斩");
 
 				//修炼技能
 				//g_tSkillList.getData()->practiceSkill("猛龙破天");
 
 				//测试学习技能条件
-				for(int i = 0; i < 32; i++){
-					g_tSkillList.getData()->isCanStudy(i);
-				}
-				
+				//for(int i = 0; i < 32; i++){
+				//	g_tSkillList.getData()->isCanStudy(i);
+				//}
+				//
+
+				//g_tBackPackListObj.getData()->selectGoods(1);
+				//g_tBackPackListObj.getData()->moveGoodToDepot(1);
+
+				//测试更换装备
+				//g_tBackPackListObj.getData()->selectGoods(0);
+				//g_tBackPackListObj.getData()->moveGoodToEquip(g_tBackPackListObj.ndHandguardL);
+				//-
+				//g_tBackPackListObj.getData()->moveGoodToEquipHandguardL(g_tBackPackListObj.ndHandguardL, "皮护手");
+
+				//测试打开NPC对话框
+				//g_tRoleObj.OpenNpcByNpcName("韦大宝");//1-平十指
+
+				//测试获取NPC地址
+				//DbgPrintfMine("%X",g_tMonsterListObj.getData()->GetNpcObjByName("韦大宝"));
+
+				//测试存放N个物品到仓库
+				//g_tBackPackListObj.getData()->moveGoodToDepot("人参", 1);
+
+				//测试取出N个物品到背包
+				g_tDepotListObj.GetData()->GetOutGoodFromDepot("人参", 2);
+
 				break;
 			}
 			return 1;
@@ -109,6 +140,25 @@ DWORD msgUseSkillByName(char* szpSkillName){
 
 DWORD msgAutoAttackMonsterBySkill(char* szpSkillName){
 	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_AUTOATTACKBYSKILL, (LPARAM)szpSkillName);
+
+	return 1;
+}
+
+BOOL msgFindWay(int niX, int niY){
+	int niXY[2] = {0};
+	niXY[0] = niX;
+	niXY[1] = niY;
+	::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_FINDWAY, (LPARAM)niXY);
+
+	return 1;
+}
+
+//TODO
+BOOL msgSaveGoodToDepot(char* szpGoodName, DWORD ndGoodNum){
+	//int niXY[2] = {0};
+	//niXY[0] = niX;
+	//niXY[1] = niY;
+	//::SendMessageA(getGameWndHandle(), MyMsgCode, MSG_FINDWAY, (LPARAM)niXY);
 
 	return 1;
 }

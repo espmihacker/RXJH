@@ -8,6 +8,7 @@
 TROLE_PROPERTY g_tRoleProperty;
 TACTION_LIST_OBJ g_tActionListObj;		//动作结构列表对象
 TBACK_PACK_LIST_OBJ g_tBackPackListObj;	//背包结构列表对象
+TDEPOT_LIST_OBJ g_tDepotListObj;		//仓库结构列表对象
 TMONSTER_LIST_OBJ g_tMonsterListObj;	//怪物结构列表对象
 TROLE_OBJ g_tRoleObj;					//玩家结构对象
 TSKILL_LIST_OBJ g_tSkillList;			//技能数组
@@ -91,8 +92,9 @@ TBACK_PACK_LIST_OBJ* TBACK_PACK_LIST_OBJ::getData(){
 	try
 	{
 		DWORD ndBase = *(DWORD*)Base_BackpackList;
-		DWORD ndFirstGoodBase = ndBase + 0x410;
+		DWORD ndFirstGoodBase = ndBase + 0x434;
 		DWORD ndObj = NULL;
+		memset(mtGoodList, 0, sizeof(mtGoodList));
 		for(int i = 0; i < nBackPackSize; i++) {
 			ndObj = *(DWORD*)(ndFirstGoodBase + 4 * i);//取出第i格对象的地址
 			if(ndObj == NULL){
@@ -101,8 +103,11 @@ TBACK_PACK_LIST_OBJ* TBACK_PACK_LIST_OBJ::getData(){
 				this->mtGoodList[i].szpGoodDesc = NULL;
 				continue;
 			}
+			this->mtGoodList[i].ndId1 = *(DWORD*)(ndObj + 0x4c);//取出物品ID1
+			this->mtGoodList[i].nqId2 = *(QWORD*)(ndObj + 0x54);//取出物品ID2
 			this->mtGoodList[i].szpGoodName = (char*)(ndObj + 0x05c);//取出物品名称
 			this->mtGoodList[i].szpGoodDesc = (char*)(ndObj + 0x0f1);//取出物品描述
+			this->mtGoodList[i].nbIndexForBackpack = *(BYTE*)(ndObj + 0x1f4);//取出物品描述
 			this->mtGoodList[i].ndGoodNum = *(DWORD*)(ndObj + 0xc44);//取出物品数量
 		}
 	}
@@ -201,18 +206,290 @@ BOOL TBACK_PACK_LIST_OBJ::useGoodByIndex(char* szpGoodName){
 	return TRUE;
 }
 
-HWND getGameWndHandle() {
+DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex){//选中背包中的某一格
 	try
 	{
-		HWND hGame = *(HWND*)Base_GameWndHandle;
-		return hGame;
+		DWORD ndObj = NULL;
+		__asm{
+			mov ebx,ndIndex
+			mov edi,dword ptr ds:[Base_BackpackList]//背包/仓库基址
+			MOV     EAX,DWORD PTR DS:[EDI+EBX*4+0x434]
+			mov		ndObj,eax			//取出对象
+			MOV     ECX,DWORD PTR DS:[Base_SelectGoodAndSkill]
+			MOV     DWORD PTR DS:[ECX+0x228],EAX
+			MOV     EDX,DWORD PTR DS:[Base_SelectGoodAndSkill]
+			MOV     BYTE PTR DS:[EDX+0x230],1
+			MOV     EAX,DWORD PTR DS:[Base_SelectGoodAndSkill]
+			MOV     ECX,DWORD PTR DS:[EAX+0x228]
+			MOV     DX,WORD PTR DS:[EDI+0x1608]
+		}
+		return ndObj;
 	}
 	catch (...)
 	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex) 错误");
 		return NULL;
 	}
-
 }
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex){//移动选中的物品到仓库
+	__try
+	{
+		__asm{
+			mov edi,dword ptr ds:[Base_DepotList]
+			mov edx,dword ptr ds:[edi+0x162c]
+			mov eax,dword ptr ds:[edi+0x1c58]
+			mov ecx,ndIndex
+			push ndIndex
+				push edx
+				push eax
+				mov ecx,edi
+				mov eax,BaseCall_MoveGoods
+				call eax
+		}
+		return TRUE;
+	}
+	__except (1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex) 错误");
+		return FALSE;
+	}
+	
+}
+
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex){
+	__try
+	{
+		__asm{
+			mov edi,dword ptr ds:[Base_EquipList]
+			mov edx,dword ptr ds:[edi+0x162c]
+			mov eax,dword ptr ds:[edi+0x1c58]
+			mov ecx,ndIndex
+				push ndIndex
+				push edx
+				push eax
+				mov ecx,edi
+				mov eax,BaseCall_MoveGoods
+				call eax
+		}
+		return TRUE;
+	}
+	__except (1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex) 错误");
+		return FALSE;
+	}
+}
+
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum)
+{
+	int niIndex = getGoodIndexByName(szpGoodName);
+	//定义缓冲区
+	BYTE nbData[0x90] = {
+		0x00,0x00,0x94,0x00,0x8C,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0x00,0xF1,0xF1,
+		0xF1,0x00,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0xDA,0x19,0x00,0x00,0x00,0x00,0x00,0x00,0x1B,0xD0,0xD1,0x1A,0x2A,0x05,
+		0x7D,0x0C,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x07,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x00,0xB6,0x80,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xCA,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x76,0xC1,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0xD2,0x80,0x38,0x79,0xD0,0x80,0x35,0x6F,0xC1,0x80,0x38,0x70
+	};
+	if(niIndex == -1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum) ERROR -1");
+		return FALSE;
+	}
+
+	PTSAVE_DEPOT_DATA pSavaData = (PTSAVE_DEPOT_DATA)nbData;
+
+	//pSavaData->ndCmd = 3;	//操作分类
+	pSavaData->ndId1_A = mtGoodList[niIndex].ndId1; //+4C
+	pSavaData->ndId1_B = pSavaData->ndId1_A;
+	pSavaData->nqId2 = mtGoodList[niIndex].nqId2; //+54
+	pSavaData->nwGoodSaveNum = ndGoodNum;
+	pSavaData->nwCurGoodNum =  mtGoodList[niIndex].ndGoodNum;
+	pSavaData->nbIndexForBackpack =  mtGoodList[niIndex].nbIndexForBackpack;
+
+	__try
+	{
+		__asm
+		{
+			mov ecx,pSavaData
+			lea ecx,nbData
+			/*
+			//-------------------------------------//
+			//物品ID相关1
+			mov dword ptr ss:[ecx+0x12],0x3B9ACA65
+			mov dword ptr ss:[ecx+0x32],0x3B9ACA65
+			//数量
+			mov word ptr ss:[ecx+0x1A],1
+			//物品ID相关2
+			mov dword ptr ss:[ecx+0x2A],0xC2AB21A3
+			mov dword ptr ss:[ecx+0x2A+4],0x0C7D052D
+			//
+			//物品数量
+			mov word ptr ss:[ecx+0x3A],0x4
+			//物品在背包中的下标
+			mov BYTE ptr ss:[ecx+0x43],0x0
+			//--------------------------------------//
+			*/
+			push 0x8E
+			push ecx
+			mov ecx,dword ptr ds:[Base_SendDataArg]
+			mov eax,BaseCall_SendData
+			call eax
+		}
+		//DbgPrintfMine("测试存放N个物品到仓库");
+		return TRUE;
+	}
+	__except(1)
+	{
+		DbgPrintfMine("TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum)");
+		return FALSE;
+	}
+}
+
+//更换装备
+//参数1 - 装备位置
+//参数2 - 装备名称
+BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquipHandguardL(int niType, char* szpEquipName){//更换左护手
+	//取得装备在背包里的下标
+	int ndIndex = getGoodIndexByName(szpEquipName);
+	if(ndIndex < 0){
+		return FALSE;
+	}
+	selectGoods(ndIndex);
+	BOOL result = moveGoodToEquip(niType);//更换装备
+	return result;
+}
+
+//--------------------------------------仓库相关代码--------------------------------------------------
+TDEPOT_LIST_OBJ* TDEPOT_LIST_OBJ::GetData()
+{
+	__try
+	{
+		DWORD ndBase = *(DWORD*)Base_DepotList;
+		DWORD ndFirstGoodBase = ndBase + 0x434;
+		DWORD ndObj = NULL;
+		memset(mtGoodList, 0, sizeof(mtGoodList));
+		for(int i = 0; i < nDepotListSize; i++) {
+			ndObj = *(DWORD*)(ndFirstGoodBase + 4 * i);//取出第i格对象的地址
+			if(ndObj == NULL){
+				this->mtGoodList[i].ndGoodNum = 0;
+				this->mtGoodList[i].szpGoodName = NULL;
+				this->mtGoodList[i].szpGoodDesc = NULL;
+				continue;
+			}
+			this->mtGoodList[i].ndId1 = *(DWORD*)(ndObj + 0x4c);//取出物品ID1
+			this->mtGoodList[i].nqId2 = *(QWORD*)(ndObj + 0x54);//取出物品ID2
+			this->mtGoodList[i].szpGoodName = (char*)(ndObj + 0x05c);//取出物品名称
+			this->mtGoodList[i].szpGoodDesc = (char*)(ndObj + 0x0f1);//取出物品描述
+			this->mtGoodList[i].nbIndexForBackpack = *(BYTE*)(ndObj + 0x1f4);//取出物品描述
+			this->mtGoodList[i].ndGoodNum = *(DWORD*)(ndObj + 0xc44);//取出物品数量
+		}
+	}
+	__except(1)
+	{
+		DbgPrintfMine("初始化仓库信息异常");
+		return FALSE;
+	}
+	return this;
+}
+
+int TDEPOT_LIST_OBJ::GetGoodIndexByName(char* szpGoodName)
+{
+	//初始化结构
+	this->GetData();
+	//遍历背包
+	int i;
+	for (i = 0; i < nDepotListSize; i++)
+	{
+		//比较背包物品名字
+		if(this->mtGoodList[i].szpGoodName != NULL && m_strcmp(szpGoodName, this->mtGoodList[i].szpGoodName) == 0){
+			return i;
+		}
+	}
+	return -1;
+}
+
+BOOL TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum)
+{
+	int niIndex = GetGoodIndexByName(szpGoodName);
+	//定义缓冲区
+	BYTE nbData[0x90] = {
+		0x00,0x00,0x94,0x00,0x8C,0x00,0x01,0x00,0x00,0x00,0x05,0x00,0x00,0x00,0xF1,0xF1,
+		0xF1,0x00,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0xDA,0x19,0x00,0x00,0x00,0x00,0x00,0x00,0x1B,0xD0,0xD1,0x1A,0x2A,0x05,
+		0x7D,0x0C,0x65,0xCA,0x9A,0x3B,0x00,0x00,0x00,0x00,0x07,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x00,0xB6,0x80,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xCA,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x76,0xC1,0x80,0x00,0x00,
+		0x00,0x00,0x00,0x00,0xD2,0x80,0x38,0x79,0xD0,0x80,0x35,0x6F,0xC1,0x80,0x38,0x70
+	};
+	if(niIndex == -1)
+	{
+		DbgPrintfMine("TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum) ERROR -1");
+		return FALSE;
+	}
+
+	PTSAVE_DEPOT_DATA pSavaData = (PTSAVE_DEPOT_DATA)nbData;
+
+	//判断取出的数量是否大于仓库中的数量
+	if(ndGoodNum > mtGoodList[niIndex].ndGoodNum)
+	{
+		DbgPrintfMine("取出物品的数量不足，请查看输入的数量！")
+			return FALSE；
+	}
+
+	pSavaData->ndCmd = 5;		//操作分类
+	pSavaData->ndId1_A = mtGoodList[niIndex].ndId1; //+4C
+	pSavaData->ndId1_B = pSavaData->ndId1_A;
+	pSavaData->nqId2 = mtGoodList[niIndex].nqId2; //+54
+	pSavaData->nwGoodSaveNum = ndGoodNum;
+	pSavaData->nwCurGoodNum =  mtGoodList[niIndex].ndGoodNum;
+	pSavaData->nbIndexForBackpack =  mtGoodList[niIndex].nbIndexForBackpack;
+
+	__try
+	{
+		__asm
+		{
+			mov ecx,pSavaData
+			lea ecx,nbData
+			/*
+			//-------------------------------------//
+			//物品ID相关1
+			mov dword ptr ss:[ecx+0x12],0x3B9ACA65
+			mov dword ptr ss:[ecx+0x32],0x3B9ACA65
+			//数量
+			mov word ptr ss:[ecx+0x1A],1
+			//物品ID相关2
+			mov dword ptr ss:[ecx+0x2A],0xC2AB21A3
+			mov dword ptr ss:[ecx+0x2A+4],0x0C7D052D
+			//
+			//物品数量
+			mov word ptr ss:[ecx+0x3A],0x4
+			//物品在背包中的下标
+			mov BYTE ptr ss:[ecx+0x43],0x0
+			//--------------------------------------//
+			*/
+			push 0x8E
+			push ecx
+			mov ecx,dword ptr ds:[Base_SendDataArg]
+			mov eax,BaseCall_SendData
+			call eax
+		}
+		//DbgPrintfMine("测试存放N个物品到仓库");
+		return TRUE;
+	}
+	__except(1)
+	{
+		DbgPrintfMine("TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum) 错误");
+		return FALSE;
+	}
+}
+
 
 //--------------------------------------怪物相关代码--------------------------------------------------
 
@@ -240,6 +517,9 @@ TMONSTER_LIST_OBJ* TMONSTER_LIST_OBJ::getData(){
 			tMonsterList[i].flCurX = *(float*)(ndObj + 0x1060);
 			tMonsterList[i].flCurY = *(float*)(ndObj + 0x1068);
 			tMonsterList[i].ndIndexByAllObj = *(DWORD*)(ndObj + 0xc);//对象数组下标
+			tMonsterList[i].ndObjAddr = ndObj;//对象的地址
+
+			//计算距离
 			tMonsterList[i].ndDistance = play2PointDistance(
 				g_tRoleObj.getData()->flCurX,
 				g_tRoleObj.getData()->flCurY,
@@ -258,6 +538,7 @@ TMONSTER_LIST_OBJ* TMONSTER_LIST_OBJ::getData(){
 }
 
 BOOL TMONSTER_LIST_OBJ::dbgPrintMsg(){
+	this->getData();
 	for(int i = 0; i < 20; i++){
 		if(tMonsterList[i].ndLevel == NULL) {
 			continue;
@@ -276,6 +557,20 @@ BOOL TMONSTER_LIST_OBJ::dbgPrintMsg(){
 	return TRUE;
 }
 
+DWORD TMONSTER_LIST_OBJ::GetNpcObjByName(char* szpNpcName){
+	for(int i = 0; i < 100; i++){
+		if(tMonsterList[i].szpName == NULL){
+			continue;
+		}
+		if(strcmp(szpNpcName, tMonsterList[i].szpName) == 0){
+			return tMonsterList[i].ndObjAddr;
+		}
+	}
+	return NULL;
+}
+
+//--------------------------------------动作相关代码--------------------------------------------------
+
 //+0c//总的对象数组下标
 //+08//分类编号
 //+4c//动作分类ID，动作CALL使用CALL参数
@@ -286,7 +581,7 @@ TACTION_LIST_OBJ* TACTION_LIST_OBJ::getData(){
 		DWORD ndFirstObj = 0;
 		DWORD ndObj = NULL;
 
-		ndFirstObj = *(DWORD*)(Base_ActionList) + 0x410;
+		ndFirstObj = *(DWORD*)(Base_ActionList) + 0x434;
 		for(int i = 0; i < 12; i++){
 			ndObj = *(DWORD*)(ndFirstObj + 4 * i);
 			tList[i].szpName = (char*)(ndObj + 0x5c);
@@ -413,6 +708,18 @@ NEXTLABLE:
 	return TRUE;
 }
 
+BOOL TROLE_OBJ::selectNpcByName(char* szpNpcName){
+	for(int i = 0; i < 100; i++){
+		TMONSTER_OBJ tempObj = g_tMonsterListObj.getData()->tMonsterList[i];
+		if(strcmp(tempObj.szpName, szpNpcName) && tempObj.szpName != NULL){
+			selectObj(tempObj.ndIndexByAllObj);
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 //选择最近的怪物
 BOOL TROLE_OBJ::selectMonsterByNear(){
 	DWORD ndIndex = 0xFFFF;
@@ -493,6 +800,97 @@ BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName){
 	return TRUE;
 }
 
+BOOL TROLE_OBJ::findWay(int niX, int niY){
+	try{
+		__asm{
+			sub esp,34
+			mov eax,esp
+			mov ecx,niX
+			mov dword ptr ss:[eax+0],ecx//X
+			fild dword ptr ss:[eax+0]
+			fstp dword ptr ss:[eax+0]
+			mov dword ptr ss:[eax+4],0//Z
+			mov ecx,niY
+			mov dword ptr ss:[eax+8],ecx//Y
+			fild dword ptr ss:[eax+8]
+			fstp dword ptr ss:[eax+8]
+			mov dword ptr ss:[eax+0x0c],0
+			mov dword ptr ss:[eax+0x10],0
+			mov dword ptr ss:[eax+0x14],0
+			mov dword ptr ss:[eax+0x18],0xFFFF
+			mov dword ptr ss:[eax+0x1c],1//以下的值无关紧要
+			mov dword ptr ss:[eax+0x20],1
+			mov dword ptr ss:[eax+0x24],0
+			mov dword ptr ss:[eax+0x28],0
+			mov dword ptr ss:[eax+0x2c],0
+			mov dword ptr ss:[eax+0x30],0
+			push 54
+			push eax
+			push 0x3ef
+			MOV     ECX,DWORD PTR DS:[Base_RoleObj]
+			MOV     EDX,DWORD PTR DS:[ECX]
+			MOV     EDX,DWORD PTR DS:[EDX+4]
+			CALL    EDX
+			add esp,34
+		}
+		//DbgPrintfMine("TROLE_OBJ::findWay");
+		return TRUE;
+	}catch(...){
+		DbgPrintfMine("TROLE_OBJ::findWay(int niX, int niY) 错误");
+		return FALSE;
+	}
+}
+
+//打开NPC对话框
+BOOL TROLE_OBJ::OpenNpcByNpcName(char* szpNpcName){
+	DWORD ndNpcAddr = NULL;
+	ndNpcAddr = g_tMonsterListObj.getData()->GetNpcObjByName(szpNpcName);
+
+	if(!ndNpcAddr){
+		DbgPrintfMine("NPC地址为空");
+		return FALSE;
+	}
+	
+	__try{
+		//首先选中一个对象，避免空指针异常
+		//g_tRoleObj.getData()->selectObj(*(DWORD*)(ndNpcAddr + 0xc));
+		g_tRoleObj.getData()->selectNpcByName(szpNpcName);
+
+		__asm{
+				push 0
+				push 0
+				push 0x401
+				mov ecx,ndNpcAddr //NPC对象地址
+				mov eax,[ecx]
+				mov eax,[eax+0x4]
+				call eax
+		}
+		return TRUE;
+	}__except(1){
+		DbgPrintfMine("TROLE_OBJ::OpenNpcByNpcId(DWORD ndNpcId) 错误");
+		return FALSE;
+	}
+}
+
+//打开仓库
+BOOL TROLE_OBJ::OpenDepot(void){
+	__try{
+		__asm{
+			push 5	//固定为5
+			mov ecx,Base_F1_F10Arg
+			mov ecx,[ecx]
+			mov ecx,[ecx+0x2e0]
+			mov ecx,[ecx+0x33c]
+			mov ecx,[ecx+0x4]
+			mov eax,BaseCall_OpenDepot
+			call eax
+		}
+		return TRUE;
+	}__except(1){
+		DbgPrintfMine("TROLE_OBJ::OpenDepot(void) 错误");
+		return FALSE;
+	}
+}
 //--------------------------------------技能列表代码--------------------------------------------------
 
 TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){
@@ -506,7 +904,7 @@ TSKILL_LIST_OBJ* TSKILL_LIST_OBJ::getData(){
 	//+268		//所需历练
 	try{
 		DWORD *ndPSkillList = NULL;
-		ndPSkillList = (DWORD*)((*(DWORD*)Base_SkillList) + 0x410);
+		ndPSkillList = (DWORD*)((*(DWORD*)Base_SkillList) + 0x434);
 		memset(this, 0, sizeof(TSKILL_LIST_OBJ));
 
 		for (int i = 0; i < 32; i++){
@@ -595,8 +993,8 @@ BOOL TSKILL_LIST_OBJ::dropSkillF1F10(char* szpSkillName, DWORD ndIndexF1F10){
 		__asm{
 			mov edi,Base_DropSkillArg
 			mov edi,[edi]
-			mov edx,dword ptr ds:[edi+0x1608]
-			mov eax,dword ptr ds:[edi+0x1c10]
+			mov edx,dword ptr ds:[edi+0x162c]
+			mov eax,dword ptr ds:[edi+0x1c58]
 			mov ecx,ndIndexF1F10
 				push ecx
 				push edx
@@ -637,8 +1035,8 @@ BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex){
 		if(!TSKILL_LIST_OBJ::isCanStudy(ndIndex)){//技能无法学习，不满足条件！
 			return FALSE;
 		}
-		DWORD ndObj = *(DWORD*)Base_SkillList + 0x410;
-		ndObj = ((DWORD*)ndObj)[ndIndex];//这句比较难,拆分如下：
+		DWORD ndObj = *(DWORD*)Base_SkillList + 0x434;
+		ndObj = ((DWORD*)ndObj)[ndIndex];//这句较难理解,可拆分如下：
 /**************************************************************
 		DWORD *ndPObj = (DWORD*)ndObj;
 		ndObj = ndPObj[ndIndex];
@@ -650,7 +1048,7 @@ BOOL TSKILL_LIST_OBJ::practiceSkill(DWORD ndIndex){
 			mov eax,dword ptr ds:[edx+0x4c]
 				push ecx
 				push eax
-				sub esp,0x150
+				sub esp,0x150//构造的缓冲区
 				lea ecx,[esp]
 				push ecx
 				mov ecx,dword ptr ds:[Base_PracticeSkillArg2]
@@ -682,7 +1080,7 @@ TF1_F10_LIST_OBJ* TF1_F10_LIST_OBJ::getData(){
 	try
 	{
 		memset(this, 0, sizeof(TF1_F10_LIST_OBJ));
-		DWORD *baseF1_F10 = (DWORD*)((*(DWORD*)Base_F1_F10List)+0x410);
+		DWORD *baseF1_F10 = (DWORD*)((*(DWORD*)Base_F1_F10List)+0x434);
 		for(int i = 0; i < F1F10Size; i++){
 			if(baseF1_F10[i] != NULL){
 				this->tF1F10List[i].ndType = *(DWORD*)(baseF1_F10[i] + 0x08);
@@ -719,7 +1117,7 @@ BOOL TF1_F10_LIST_OBJ::useSkillByIndex(int index){
 				mov eax,index
 				push eax
 				mov ecx,Base_F1_F10Arg
-				mov ecx,[ecx+0x27c]
+				mov ecx,[ecx+0x280]
 				mov eax,BaseCall_F1_F10Call
 				call eax
 		}
@@ -781,4 +1179,17 @@ DWORD play2PointDistance(float x1, float y1, float x2, float y2){
 	ndDistanse = (DWORD)c;
 
 	return ndDistanse;
+}
+
+HWND getGameWndHandle() {
+	try
+	{
+		HWND hGame = *(HWND*)Base_GameWndHandle;
+		return hGame;
+	}
+	catch (...)
+	{
+		return NULL;
+	}
+
 }

@@ -74,8 +74,14 @@ typedef struct TROLE_PROPERTY{ //人物属性结构
 }_TROLE_PROPERTY;
 
 typedef struct TBACK_PACK_OBJ{//背包物品对象
+	//+4C	//ID1
+	DWORD ndId1;
+	//+54	//ID2
+	QWORD nqId2;
 	//+5C	//物品名称
 	char* szpGoodName;
+	//+1F4	//物品位置0...
+	BYTE nbIndexForBackpack;
 	//+F1	//物品描述
 	char* szpGoodDesc;
 	//+C44	//物品数量
@@ -85,13 +91,41 @@ typedef struct TBACK_PACK_OBJ{//背包物品对象
 //背包结构
 #define nBackPackSize 36
 typedef struct TBACK_PACK_LIST_OBJ{//背包对象
+
+	enum EquipType{
+		ndClothes,
+		ndHandguardL,ndHandguardR,
+		ndArm,
+		ndShoe,
+		ndShell,
+		ndNecklace,
+		ndEarringL,ndEarringR,
+		ndRingL,ndRingR
+	};
+
 	TBACK_PACK_OBJ mtGoodList[nBackPackSize];
 
 	TBACK_PACK_LIST_OBJ* getData();
 	int useGoodByIndex(DWORD ndIndex);//根据下标使用背包物品
 	int getGoodIndexByName(char* szpGoodName);//根据物品名查询并返回物品下标
 	BOOL useGoodByIndex(char* szpGoodName);//根据物品名使用背包物品
+	DWORD TBACK_PACK_LIST_OBJ::selectGoods(DWORD ndIndex);//选中背包中的某一格
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(DWORD ndIndex = 1);//移动选中的物品到仓库
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquip(DWORD ndIndex = 1);//移动物品到装备，更换装备
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToDepot(char* szpGoodName, DWORD ndGoodNum);
+	BOOL TBACK_PACK_LIST_OBJ::moveGoodToEquipHandguardL(int niType, char* szpEquipName);//更换左护手
 }_TBACK_PACK_LIST_OBJ;
+
+//仓库结构
+#define nDepotListSize 60
+typedef struct TDEPOT_LIST_OBJ
+{
+	TBACK_PACK_OBJ mtGoodList[nDepotListSize];
+
+	TDEPOT_LIST_OBJ* TDEPOT_LIST_OBJ::GetData();
+	int TDEPOT_LIST_OBJ::GetGoodIndexByName(char* szpGoodName);
+	BOOL TDEPOT_LIST_OBJ::GetOutGoodFromDepot(char* szpGoodName, DWORD ndGoodNum);//从仓库中取出物品
+}_TDEPOT_LIST_OBJ;
 
 //怪物结构
 typedef struct TMONSTER_OBJ{
@@ -109,6 +143,8 @@ typedef struct TMONSTER_OBJ{
 	float flCurX;
 	//+1068	//坐标2
 	float flCurY;
+
+	DWORD ndObjAddr;//对象的地址
 	DWORD ndDistance;//距离玩家
 }_TMONSTER_OBJ;
 
@@ -117,6 +153,7 @@ typedef struct TMONSTER_LIST_OBJ{
 
 	TMONSTER_LIST_OBJ* getData();
 	BOOL TMONSTER_LIST_OBJ::dbgPrintMsg();
+	DWORD TMONSTER_LIST_OBJ::GetNpcObjByName(char* szpNpcName);
 }_TMONSTER_LIST_OBJ;
 
 //人物动作
@@ -147,10 +184,14 @@ typedef struct TROLE_OBJ{
 
 	TROLE_OBJ* TROLE_OBJ::getData();
 	BOOL TROLE_OBJ::selectObj(DWORD ndIndexByObj);
+	BOOL TROLE_OBJ::selectNpcByName(char* szpNpcName);
 	BOOL TROLE_OBJ::selectMonsterByNear();//选择最近的怪物
 	BOOL TROLE_OBJ::autoAttackMonster();//自动打怪
 	BOOL TROLE_OBJ::autoAttackMonsterBySkill(char* szpSkillName);//使用技能自动打怪
 	DWORD TROLE_OBJ::getSelectObjType();//返回选择的类型 obj+0x8=0x2E
+	BOOL TROLE_OBJ::findWay(int niX, int niY);//自动寻路
+	BOOL TROLE_OBJ::OpenNpcByNpcName(char* szpNpcName);//打开NPC对话框
+	BOOL TROLE_OBJ::OpenDepot(void);//打开仓库
 }_TROLE_OBJ;
 
 typedef struct  TSKILL_OBJ{
@@ -192,7 +233,8 @@ typedef struct TF1_F10_OBJ{
 
 }_TF1_F10_OBJ;
 
-typedef struct TF1_F10_LIST_OBJ{
+typedef struct TF1_F10_LIST_OBJ
+{
 	TF1_F10_OBJ tF1F10List[F1F10Size];
 
 	TF1_F10_LIST_OBJ* TF1_F10_LIST_OBJ::getData();
@@ -201,5 +243,41 @@ typedef struct TF1_F10_LIST_OBJ{
 	int TF1_F10_LIST_OBJ::getEmptyIndex(void);
 	BOOL TF1_F10_LIST_OBJ::useSkillByName(char* szpSkillName);
 }_TF1_F10_LIST_OBJ;
+
+#pragma pack(1)
+typedef struct TSAVE_DEPOT_DATA
+{
+	BYTE nb1[0x0A];
+	DWORD ndCmd;	//4字节 操作分类：3-存 5-取
+
+	BYTE nb9[4];
+
+	//+12		4字节 来源于物品对象+0x4C
+	DWORD ndId1_A;//0x16
+
+	BYTE nb2[4];
+	//+1A		//2字节 物品数量
+	WORD nwGoodSaveNum;//0x1C
+
+	BYTE nb3[0xE];
+	//+2A		//8字节 来源于物品对象+0x54
+	QWORD nqId2;
+
+	//+32		4字节 来源于物品对象+0x4C
+	DWORD ndId1_B;
+
+	BYTE nb4[4];
+	//+3A		//2字节 物品数量上限，来源于物品对象+0x0c44
+	WORD nwCurGoodNum;//3C
+
+	BYTE nb5[7];
+	//+43		//1字节 物品在背包里的下标，来源于物品对象+1f4
+	BYTE nbIndexForBackpack;
+
+	//其他数据
+	BYTE nb6[0x4c];//0x90
+
+}_TSAVE_DEPOT_DATA,*PTSAVE_DEPOT_DATA;
+#pragma pack()
 
 #endif

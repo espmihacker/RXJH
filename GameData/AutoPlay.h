@@ -14,7 +14,7 @@ public:
 	HANDLE hT_AutoAttackPick;//主线程句柄
 	char szSkillName[22];
 
-	static void ThreadPro_AutoAttackMonsterAndPickGood(void);
+	void ThreadPro_AutoAttackMonsterAndPickGood(LPVOID lpData);
 	//开始挂机
 	void autoPlay();
 	//停止挂机
